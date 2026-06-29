@@ -1,0 +1,253 @@
+/* ── Reset ─────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Base ──────────────────────────────────────────────────────────────── */
+:root {
+  --bg:        #0f172a;
+  --surface:   #1e293b;
+  --border:    #334155;
+  --text:      #e2e8f0;
+  --muted:     #64748b;
+  --accent:    #6366f1;
+  --accent-dk: #4f46e5;
+  --green:     #4ade80;
+  --red:       #f87171;
+}
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100dvh;
+
+  /* iOS safe areas (notch / home indicator) */
+  padding-top:    max(env(safe-area-inset-top),    1.25rem);
+  padding-right:  max(env(safe-area-inset-right),  1rem);
+  padding-bottom: max(env(safe-area-inset-bottom), 1.5rem);
+  padding-left:   max(env(safe-area-inset-left),   1rem);
+
+  /* Prevent text size inflation on orientation change */
+  -webkit-text-size-adjust: 100%;
+}
+
+/* ── Layout ────────────────────────────────────────────────────────────── */
+.app { max-width: 540px; margin: 0 auto; }
+
+/* ── Header ────────────────────────────────────────────────────────────── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+h1 { font-size: 1.75rem; font-weight: 700; }
+
+h2 {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.75rem;
+}
+
+/* ── Buttons ────────────────────────────────────────────────────────────── */
+/* 44 px min-height is Apple's recommended touch target */
+.btn-lang {
+  min-height: 44px;
+  padding: 0 0.875rem;
+  background: var(--surface);
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-lang:active { background: var(--border); }
+
+.btn-notify {
+  min-height: 44px;
+  padding: 0 1rem;
+  background: var(--surface);
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-notify.is-on { color: var(--green); border-color: var(--green); }
+
+.btn-primary {
+  width: 100%;
+  min-height: 48px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-primary:active   { background: var(--accent-dk); }
+.btn-primary:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
+.btn-primary.is-added { background: #16a34a; }
+
+/* ── Banners ────────────────────────────────────────────────────────────── */
+.banner {
+  padding: 0.875rem 1rem;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+.banner.warn  { background: #1c1917; border: 1px solid #78350f; color: #fbbf24; }
+.banner.error { background: #450a0a; border: 1px solid #7f1d1d; color: #fca5a5; }
+
+/* ── iOS install box ────────────────────────────────────────────────────── */
+.install-box {
+  background: #0c1a33;
+  border: 1px solid #1e40af;
+  border-radius: 12px;
+  padding: 1rem 1.125rem;
+  margin-bottom: 1.25rem;
+}
+.install-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #93c5fd;
+  margin-bottom: 0.6rem;
+}
+.install-steps {
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.9rem;
+  color: #bfdbfe;
+}
+.install-steps .icon { font-size: 1rem; }
+.install-note {
+  margin-top: 0.75rem;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+/* ── Add timer form ─────────────────────────────────────────────────────── */
+.form-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.25rem;
+  margin-bottom: 2rem;
+}
+.form-card h2 { margin-bottom: 1rem; }
+
+.form-fields { display: flex; flex-direction: column; gap: 0.75rem; }
+
+/* Wrap each input + its error message */
+.field-group { display: flex; flex-direction: column; gap: 0.35rem; }
+
+.field-error { font-size: 0.8rem; color: var(--red); padding-left: 0.25rem; }
+
+.form-fields input[type="text"] {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 16px;      /* 16px prevents iOS auto-zoom on focus */
+  padding: 0.75rem;
+  border-radius: 8px;
+  -webkit-appearance: none;
+}
+.form-fields input::placeholder { color: var(--muted); }
+.form-fields input:focus     { outline: 2px solid var(--accent); border-color: transparent; }
+.form-fields input.has-error { border-color: var(--red); }
+
+.duration-row {
+  display: flex;
+  gap: 0.5rem;
+}
+.duration-field {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.duration-field input {
+  flex: 1;
+  min-width: 0;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 16px;
+  padding: 0.75rem 0.5rem;
+  border-radius: 8px;
+  text-align: center;
+  -webkit-appearance: none;
+}
+.duration-field span { color: var(--muted); font-size: 0.85rem; white-space: nowrap; }
+
+/* ── Timer list ─────────────────────────────────────────────────────────── */
+.section { margin-bottom: 2rem; }
+.timer-list { display: flex; flex-direction: column; gap: 0.75rem; }
+.empty { color: var(--muted); font-size: 0.9rem; }
+
+.timer-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem 1.125rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.timer-card.is-done { opacity: 0.45; }
+
+.timer-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.2rem; }
+
+.timer-name {
+  font-weight: 600;
+  font-size: 1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.timer-time {
+  font-size: 2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+  line-height: 1.1;
+}
+.timer-time.urgent { color: var(--red); }
+.timer-time.done   { color: var(--green); font-size: 1rem; font-weight: 600; }
+
+.btn-delete {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 0.75rem;
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-delete:active { color: var(--red); border-color: var(--red); }

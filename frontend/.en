@@ -1,0 +1,4 @@
+# URL of the backend.
+# Local dev:   http://localhost:3001
+# Production:  https://your-backend.onrender.com
+VITE_API_URL=http://localhost:3001
