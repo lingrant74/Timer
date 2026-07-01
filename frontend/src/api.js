@@ -34,5 +34,47 @@ export const createTimer = (body) =>
     body: JSON.stringify(body),
   });
 
+export const modifyTimer = (id, adjustSeconds) =>
+  request(`/timers/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ adjustSeconds }),
+  });
+
 export const deleteTimer = (id) =>
   request(`/timers/${id}`, { method: 'DELETE' });
+
+// ── Records ──────────────────────────────────────────────────────────────
+
+export const getRecords = () => request('/records');
+
+export const createRecord = (body) =>
+  request('/records', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+
+export const updateRecord = (id, body) =>
+  request(`/records/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+
+export const deleteRecord = (id) =>
+  request(`/records/${id}`, { method: 'DELETE' });
+
+export const clearRecords = () =>
+  request('/records', { method: 'DELETE' });
+
+// ── Record Columns ───────────────────────────────────────────────────────
+
+export const getRecordColumns = () => request('/record-columns');
+
+export const saveRecordColumns = (columns) =>
+  request('/record-columns', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(columns),
+  });

@@ -123,7 +123,7 @@ export default function AddTimerForm({ onAdd, t }) {
           </div>
 
           {/* Submit */}
-          <button type="submit" className={`btn-primary ${added ? 'is-added' : ''}`}>
+          <button type="submit" className={`btn btn-primary form-submit ${added ? 'is-added' : ''}`}>
             {added ? t.timerAdded : t.startTimer}
           </button>
 

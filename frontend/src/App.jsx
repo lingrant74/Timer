@@ -1,19 +1,15 @@
-import { useState, useEffect, useCallback } from 'react';
-import { getTimers, createTimer, deleteTimer } from './api';
+import { useState } from 'react';
+import RecordsPage from './pages/RecordsPage';
+import TimersPage from './pages/TimersPage';
 import { usePushNotifications } from './usePushNotifications';
-import TimerCard from './components/TimerCard';
-import AddTimerForm from './components/AddTimerForm';
-import InstallInstructions from './components/InstallInstructions';
 import strings from './lang';
 
 export default function App() {
-  const [timers,     setTimers]     = useState([]);
-  const [fetchError, setFetchError] = useState(null);
-  const [lang,       setLang]       = useState(
-    () => localStorage.getItem('lang') || 'en'
-  );
+  const [tab, setTab] = useState(() => localStorage.getItem('activeTab') || 'records');
+  const [lang, setLang] = useState(() => localStorage.getItem('lang') || 'en');
 
   const t = strings[lang];
+  const { subscriptionId } = usePushNotifications();
 
   function toggleLang() {
     const next = lang === 'en' ? 'zh' : 'en';
@@ -21,100 +17,48 @@ export default function App() {
     localStorage.setItem('lang', next);
   }
 
-  const { subscriptionId, enabled, enable, error: pushError } = usePushNotifications();
-
-  // ── Load timers ──────────────────────────────────────────────────────────
-  const loadTimers = useCallback(async () => {
-    try {
-      const data = await getTimers();
-      setTimers(data);
-      setFetchError(null);
-    } catch {
-      setFetchError(t.errorBackend);
-    }
-  }, [t.errorBackend]);
-
-  useEffect(() => {
-    loadTimers();
-    const id = setInterval(loadTimers, 5000);
-    return () => clearInterval(id);
-  }, [loadTimers]);
-
-  // ── Actions ──────────────────────────────────────────────────────────────
-  async function handleAdd({ name, durationSeconds }) {
-    try {
-      const timer = await createTimer({ name, durationSeconds, subscriptionId });
-      setTimers((prev) => [timer, ...prev]);
-    } catch {
-      setFetchError(t.errorCreate);
-    }
+  function switchTab(newTab) {
+    setTab(newTab);
+    localStorage.setItem('activeTab', newTab);
   }
-
-  async function handleDelete(id) {
-    await deleteTimer(id);
-    setTimers((prev) => prev.filter((t) => t.id !== id));
-  }
-
-  const active    = timers.filter((t) => !t.completed);
-  const completed = timers.filter((t) =>  t.completed);
 
   return (
-    <div className="app">
-
-      {/* ── Header ── */}
-      <div className="header">
-        <h1>{t.appTitle}</h1>
-        <div className="header-actions">
-          <button className="btn-lang" onClick={toggleLang}>
-            {t.langToggle}
-          </button>
-          <button
-            className={`btn-notify ${enabled ? 'is-on' : ''}`}
-            onClick={enable}
-            disabled={enabled}
-          >
-            {enabled ? t.notificationsOn : t.enableNotifications}
-          </button>
-        </div>
+    <div className="app-shell">
+      <div className="top-bar">
+        <button className="btn-lang" onClick={toggleLang}>
+          {t.langToggle}
+        </button>
       </div>
 
-      {/* ── Banners ── */}
-      {pushError  && <div className="banner error">{pushError}</div>}
-      {fetchError && <div className="banner error">{fetchError}</div>}
+      <main className="main-content">
+        {tab === 'records' ? <RecordsPage t={t} lang={lang} subscriptionId={subscriptionId} /> : <TimersPage t={t} />}
+      </main>
 
-      {!enabled && (
-        <div className="banner warn">{t.warnNotifications}</div>
-      )}
-
-      <InstallInstructions t={t} />
-
-      {/* ── Form — always enabled so multiple timers can be added freely ── */}
-      <AddTimerForm onAdd={handleAdd} t={t} />
-
-      {/* ── Active timers ── */}
-      <section className="section">
-        <h2>{t.active}{active.length > 0 ? ` · ${active.length}` : ''}</h2>
-        {active.length === 0
-          ? <p className="empty">{t.noActive}</p>
-          : <div className="timer-list">
-              {active.map((timer) => (
-                <TimerCard key={timer.id} timer={timer} onDelete={handleDelete} t={t} />
-              ))}
-            </div>
-        }
-      </section>
-
-      {/* ── Completed timers ── */}
-      {completed.length > 0 && (
-        <section className="section">
-          <h2>{t.completed} · {completed.length}</h2>
-          <div className="timer-list">
-            {completed.map((timer) => (
-              <TimerCard key={timer.id} timer={timer} onDelete={handleDelete} t={t} />
-            ))}
-          </div>
-        </section>
-      )}
+      <nav className="tab-bar">
+        <button
+          className={`tab-btn ${tab === 'records' ? 'active' : ''}`}
+          onClick={() => switchTab('records')}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+          </svg>
+          <span>{t.tabRecords}</span>
+        </button>
+        <button
+          className={`tab-btn ${tab === 'timers' ? 'active' : ''}`}
+          onClick={() => switchTab('timers')}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+          <span>{t.tabTimers}</span>
+        </button>
+      </nav>
     </div>
   );
 }
