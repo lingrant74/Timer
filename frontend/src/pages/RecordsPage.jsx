@@ -36,6 +36,7 @@ export default function RecordsPage({ t, lang, subscriptionId, notificationsEnab
   const [search, setSearch] = useState('');
   const [showManage, setShowManage] = useState(false);
   const [error, setError] = useState(null);
+  const [saveState, setSaveState] = useState('idle');
   const debounceTimers = useRef({});
 
   // Load data from backend
@@ -122,6 +123,7 @@ export default function RecordsPage({ t, lang, subscriptionId, notificationsEnab
   };
 
   const handleCellChange = useCallback((rowId, key, value) => {
+    setSaveState('dirty');
     setRows((prev) => {
       const updated = prev.map((row) => (row.id === rowId ? { ...row, [key]: value } : row));
       const row = updated.find((r) => r.id === rowId);
@@ -131,6 +133,7 @@ export default function RecordsPage({ t, lang, subscriptionId, notificationsEnab
   }, [columns]);
 
   const handleCustomFieldChange = useCallback((rowId, fieldIndex, key, value) => {
+    setSaveState('dirty');
     setRows((prev) => {
       const updated = prev.map((row) => {
         if (row.id !== rowId) return row;
@@ -145,6 +148,7 @@ export default function RecordsPage({ t, lang, subscriptionId, notificationsEnab
   }, []);
 
   const handleAddCustomField = useCallback((rowId) => {
+    setSaveState('dirty');
     setRows((prev) => {
       const updated = prev.map((row) => {
         if (row.id !== rowId) return row;
@@ -158,6 +162,7 @@ export default function RecordsPage({ t, lang, subscriptionId, notificationsEnab
   }, []);
 
   const handleDeleteCustomField = useCallback((rowId, fieldIndex) => {
+    setSaveState('dirty');
     setRows((prev) => {
       const updated = prev.map((row) => {
         if (row.id !== rowId) return row;
@@ -196,6 +201,21 @@ export default function RecordsPage({ t, lang, subscriptionId, notificationsEnab
       await saveRecordColumns(newColumns);
     } catch {
       setError(t.errorCreate);
+    }
+  };
+
+  const handleSaveAll = async () => {
+    Object.values(debounceTimers.current).forEach(clearTimeout);
+    debounceTimers.current = {};
+    setSaveState('saving');
+    try {
+      await Promise.all(rows.map((row) => updateRecord(row.id, rowToPayload(row))));
+      setError(null);
+      setSaveState('saved');
+      setTimeout(() => setSaveState('idle'), 1800);
+    } catch {
+      setSaveState('dirty');
+      setError(t.errorSave || t.errorCreate);
     }
   };
 
@@ -270,6 +290,13 @@ export default function RecordsPage({ t, lang, subscriptionId, notificationsEnab
         </div>
         <div className="toolbar-buttons">
           <button className="btn btn-primary" onClick={handleAddRow}>{t.addRow}</button>
+          <button
+            className={`btn btn-save ${saveState === 'saved' ? 'is-saved' : ''}`}
+            onClick={handleSaveAll}
+            disabled={rows.length === 0 || saveState === 'saving'}
+          >
+            {saveState === 'saving' ? t.saving : saveState === 'saved' ? t.saved : t.save}
+          </button>
           <button className="btn btn-secondary" onClick={() => setShowManage(true)}>{t.manageColumns}</button>
           {rows.length > 0 && (
             <button className="btn btn-danger" onClick={handleClearAll}>{t.clearAll}</button>

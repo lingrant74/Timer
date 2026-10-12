@@ -21,6 +21,10 @@ const strings = {
     // Records page
     recordsTitle: 'Details Record',
     addRow: '+ Add Row',
+    save: 'Save',
+    saving: 'Saving…',
+    saved: 'Saved ✓',
+    errorSave: 'Failed to save records.',
     clearAll: 'Clear All',
     clearConfirm: 'Clear all rows? This cannot be undone.',
     deleteConfirm: 'Delete this row?',
@@ -114,6 +118,10 @@ const strings = {
     // Records page
     recordsTitle: '明细记录',
     addRow: '+ 添加行',
+    save: '保存',
+    saving: '保存中…',
+    saved: '已保存 ✓',
+    errorSave: '保存记录失败。',
     clearAll: '清空全部',
     clearConfirm: '清空所有行？此操作不可撤销。',
     deleteConfirm: '删除此行？',
