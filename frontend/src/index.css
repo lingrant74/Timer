@@ -478,6 +478,11 @@ body {
   border-color: #fb923c;
   background: #fff7ed;
 }
+.due-date-critical .date-time-inputs .cell-input {
+  border-color: #fb7185;
+  background: #ffe4e6;
+  color: #be123c;
+}
 .due-date-overdue .date-time-inputs .cell-input {
   border-color: var(--danger);
   background: var(--danger-light);
@@ -510,6 +515,7 @@ body {
 .countdown-badge.upcoming { background: #eff6ff; color: #2563eb; }
 .countdown-badge.soon { background: #fffbeb; color: #b45309; }
 .countdown-badge.urgent { background: #fff7ed; color: #c2410c; }
+.countdown-badge.critical { background: #ffe4e6; color: #be123c; }
 .countdown-badge.overdue { background: var(--danger-light); color: var(--danger); }
 
 /* ── Checkbox cell ── */
@@ -895,3 +901,44 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 .btn-delete:hover { color: var(--danger); border-color: var(--danger); background: var(--danger-light); }
+
+/* ── Settings ── */
+.settings-page { max-width: 720px; }
+.settings-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  box-shadow: var(--shadow-sm);
+}
+.settings-card h2 { font-size: 1rem; margin-bottom: 0.35rem; }
+.settings-description { color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1rem; }
+.settings-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem;
+  margin-bottom: 0.6rem;
+  border: 1px solid var(--border);
+  border-left-width: 5px;
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.settings-field div { display: flex; align-items: center; gap: 0.4rem; white-space: nowrap; color: var(--text-secondary); }
+.settings-field input { width: 72px; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; font: inherit; }
+.settings-soon { background: #fff7f7; border-left-color: #fecaca; }
+.settings-urgent { background: #fff1f2; border-left-color: #fda4af; }
+.settings-critical { background: #ffe4e6; border-left-color: #fb7185; }
+.warning-preview { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem; margin-top: 1rem; }
+.warning-preview span { padding: 0.65rem 0.3rem; border-radius: 6px; text-align: center; font-size: 0.72rem; font-weight: 700; }
+.preview-normal { background: var(--surface); }
+.preview-soon { background: #fff7f7; }
+.preview-urgent { background: #fff1f2; }
+.preview-critical { background: #ffe4e6; color: #be123c; }
+
+@media (max-width: 480px) {
+  .settings-field { align-items: flex-start; flex-direction: column; gap: 0.55rem; }
+  .warning-preview { grid-template-columns: repeat(2, 1fr); }
+}

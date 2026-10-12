@@ -3,6 +3,20 @@ const strings = {
     // Tabs
     tabRecords: 'Records',
     tabTimers: 'Timers',
+    tabSettings: 'Settings',
+    settingsTitle: 'Settings',
+    dueColorTitle: 'Due-date warning colors',
+    dueColorDescription: 'Choose when records begin changing color. The closer the due time gets, the redder the record becomes.',
+    lightRedStarts: 'Light red begins',
+    mediumRedStarts: 'Medium red begins',
+    strongRedStarts: 'Strong red begins',
+    daysBefore: 'days before',
+    hoursBefore: 'hours before',
+    colorPreview: 'Warning color preview',
+    normal: 'Normal',
+    soon: 'Soon',
+    urgent: 'Urgent',
+    critical: 'Critical',
 
     // Records page
     recordsTitle: 'Details Record',
@@ -82,6 +96,20 @@ const strings = {
     // Tabs
     tabRecords: '明细',
     tabTimers: '计时器',
+    tabSettings: '设置',
+    settingsTitle: '设置',
+    dueColorTitle: '到期日警告颜色',
+    dueColorDescription: '设置记录何时开始变色。越接近到期时间，记录会变得越红。',
+    lightRedStarts: '浅红色开始于',
+    mediumRedStarts: '中红色开始于',
+    strongRedStarts: '深红色开始于',
+    daysBefore: '天前',
+    hoursBefore: '小时前',
+    colorPreview: '警告颜色预览',
+    normal: '正常',
+    soon: '接近',
+    urgent: '紧急',
+    critical: '非常紧急',
 
     // Records page
     recordsTitle: '明细记录',

@@ -3,7 +3,7 @@ import TableRow from './TableRow';
 export default function DataTable({
   columns, rows, lang, t,
   onCellChange, onDelete,
-  onAddCustomField, onCustomFieldChange, onDeleteCustomField,
+  onAddCustomField, onCustomFieldChange, onDeleteCustomField, dueWarningSettings,
 }) {
   return (
     <>
@@ -33,6 +33,7 @@ export default function DataTable({
                   onCustomFieldChange={onCustomFieldChange}
                   onDeleteCustomField={onDeleteCustomField}
                   mode="table"
+                  dueWarningSettings={dueWarningSettings}
                 />
               ))}
             </tbody>
@@ -55,6 +56,7 @@ export default function DataTable({
             onCustomFieldChange={onCustomFieldChange}
             onDeleteCustomField={onDeleteCustomField}
             mode="card"
+            dueWarningSettings={dueWarningSettings}
           />
         ))}
       </div>

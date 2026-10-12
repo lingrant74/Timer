@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { getDueStatus } from '../dueWarningSettings';
 
 const REMINDER_OPTIONS = {
   en: [
@@ -63,19 +64,7 @@ function getCountdownText(dateStr, t) {
   return t.countdownMins(mins);
 }
 
-function getDueDateStatus(dateStr) {
-  if (!dateStr) return '';
-  const due = new Date(dateStr.includes('T') ? dateStr : `${dateStr}T23:59:59`).getTime();
-  if (Number.isNaN(due)) return '';
-  const diff = due - Date.now();
-  if (diff <= 0) return 'overdue';
-  if (diff <= 24 * 60 * 60 * 1000) return 'urgent';
-  if (diff <= 3 * 24 * 60 * 60 * 1000) return 'soon';
-  if (diff <= 7 * 24 * 60 * 60 * 1000) return 'upcoming';
-  return '';
-}
-
-export default function CellInput({ type, value, onChange, lang, t, placeholder }) {
+export default function CellInput({ type, value, onChange, lang, t, placeholder, dueWarningSettings }) {
   const [showCountdown, setShowCountdown] = useState(false);
   const [, setClockTick] = useState(0);
 
@@ -113,7 +102,7 @@ export default function CellInput({ type, value, onChange, lang, t, placeholder 
 
   if (type === 'date') {
     const countdown = value ? getCountdownText(value, t) : null;
-    const status = getDueDateStatus(value);
+    const status = getDueStatus(value, dueWarningSettings);
     const { date: dateValue, time: timeValue } = getDateTimeInputValues(value);
 
     const handleDateChange = (date) => {

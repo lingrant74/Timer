@@ -1,24 +1,13 @@
 import { useState, useEffect } from 'react';
 import CellInput from './CellInput';
+import { getDueStatus } from '../dueWarningSettings';
 
 const AGENT_FIELD_IDS = ['agentName', 'agentCompany', 'agentPhone'];
-
-function getRecordDueStatus(value) {
-  if (!value) return '';
-  const due = new Date(value.includes('T') ? value : `${value}T23:59:59`).getTime();
-  if (Number.isNaN(due)) return '';
-  const diff = due - Date.now();
-  if (diff <= 0) return 'overdue';
-  if (diff <= 24 * 60 * 60 * 1000) return 'critical';
-  if (diff <= 3 * 24 * 60 * 60 * 1000) return 'urgent';
-  if (diff <= 7 * 24 * 60 * 60 * 1000) return 'soon';
-  return '';
-}
 
 export default function TableRow({
   row, columns, lang, t, mode,
   onCellChange, onDelete,
-  onAddCustomField, onCustomFieldChange, onDeleteCustomField,
+  onAddCustomField, onCustomFieldChange, onDeleteCustomField, dueWarningSettings,
 }) {
   const customFields = row.customFields || [];
   const placeholder = lang === 'zh' ? '点击编辑' : 'Click to edit';
@@ -31,7 +20,7 @@ export default function TableRow({
   }, [mode, row.dueDate]);
 
   if (mode === 'card') {
-    const dueStatus = getRecordDueStatus(row.dueDate);
+    const dueStatus = getDueStatus(row.dueDate, dueWarningSettings);
     const agentColumns = columns.filter((col) => AGENT_FIELD_IDS.includes(col.id));
     const reminderColumns = columns.filter((col) => col.id === 'reminder');
     const otherColumns = columns.filter(
@@ -51,6 +40,7 @@ export default function TableRow({
           lang={lang}
           t={t}
           placeholder={placeholder}
+          dueWarningSettings={dueWarningSettings}
         />
       </div>
     );
@@ -109,6 +99,7 @@ export default function TableRow({
               lang={lang}
               t={t}
               placeholder={placeholder}
+              dueWarningSettings={dueWarningSettings}
             />
           </td>
         ))}

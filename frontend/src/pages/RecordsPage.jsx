@@ -29,7 +29,7 @@ const DEFAULT_COLUMNS = [
   { id: 'reminder', name: { en: 'Reminder', zh: '提醒' }, type: 'reminder' },
 ];
 
-export default function RecordsPage({ t, lang, subscriptionId, notificationsEnabled, enableNotifications, pushError }) {
+export default function RecordsPage({ t, lang, subscriptionId, notificationsEnabled, enableNotifications, pushError, dueWarningSettings }) {
   const [columns, setColumns] = useState(DEFAULT_COLUMNS);
   const [rows, setRows] = useState([]);
   const [search, setSearch] = useState('');
@@ -296,6 +296,7 @@ export default function RecordsPage({ t, lang, subscriptionId, notificationsEnab
           onAddCustomField={handleAddCustomField}
           onCustomFieldChange={handleCustomFieldChange}
           onDeleteCustomField={handleDeleteCustomField}
+          dueWarningSettings={dueWarningSettings}
         />
       )}
 
