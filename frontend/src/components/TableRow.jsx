@@ -12,6 +12,7 @@ export default function TableRow({
   const customFields = row.customFields || [];
   const placeholder = lang === 'zh' ? '点击编辑' : 'Click to edit';
   const [, setClockTick] = useState(0);
+  const [isExpanded, setIsExpanded] = useState(Boolean(row._isNew));
 
   useEffect(() => {
     if (mode !== 'card' || !row.dueDate) return undefined;
@@ -45,44 +46,68 @@ export default function TableRow({
       </div>
     );
 
+    const title = row.name || row.address || t.untitledRecord;
+    const dueLabel = row.dueDate
+      ? new Date(row.dueDate.includes('T') ? row.dueDate : `${row.dueDate}T23:59:59`).toLocaleDateString()
+      : t.noDueDate;
+
     return (
       <div className={`record-card due-card-${dueStatus}`}>
-        {fieldsBeforeAgent.map(renderCardField)}
-        {agentColumns.map(renderCardField)}
-        {fieldsAfterAgent.map(renderCardField)}
-        {customFields.map((field, i) => (
-          <div key={i} className="card-field custom-field">
-            <div className="custom-field-header">
-              <input
-                type="text"
-                className="custom-field-name"
-                value={field.name}
-                onChange={(e) => onCustomFieldChange(row.id, i, 'name', e.target.value)}
-                placeholder={t.fieldName}
-              />
-              <button
-                className="btn-icon btn-icon-sm btn-danger-icon"
-                onClick={() => onDeleteCustomField(row.id, i)}
-              >×</button>
-            </div>
-            <input
-              type="text"
-              className="cell-input"
-              value={field.value}
-              onChange={(e) => onCustomFieldChange(row.id, i, 'value', e.target.value)}
-              placeholder={t.fieldValue}
-            />
+        <div className="record-card-header">
+          <div className="record-card-summary">
+            <strong>{title}</strong>
+            <span>{row.amount ? `${lang === 'zh' ? '¥' : '$'}${row.amount} · ` : ''}{dueLabel}</span>
           </div>
-        ))}
-        <div className="card-actions">
-          <button className="btn btn-small btn-ghost" onClick={() => onAddCustomField(row.id)}>
-            {t.addField}
-          </button>
-          <button className="btn-row-action danger" onClick={() => onDelete(row.id)}>
-            {t.deleteBtn}
+          <button
+            type="button"
+            className="record-expand-btn"
+            onClick={() => setIsExpanded((current) => !current)}
+            aria-expanded={isExpanded}
+          >
+            {isExpanded ? t.collapseRecord : t.editRecord}
+            <span className={`expand-chevron ${isExpanded ? 'is-open' : ''}`}>⌄</span>
           </button>
         </div>
-        {reminderColumns.map(renderCardField)}
+        {isExpanded && (
+          <div className="record-card-body">
+            {fieldsBeforeAgent.map(renderCardField)}
+            {agentColumns.map(renderCardField)}
+            {fieldsAfterAgent.map(renderCardField)}
+            {customFields.map((field, i) => (
+              <div key={i} className="card-field custom-field">
+                <div className="custom-field-header">
+                  <input
+                    type="text"
+                    className="custom-field-name"
+                    value={field.name}
+                    onChange={(e) => onCustomFieldChange(row.id, i, 'name', e.target.value)}
+                    placeholder={t.fieldName}
+                  />
+                  <button
+                    className="btn-icon btn-icon-sm btn-danger-icon"
+                    onClick={() => onDeleteCustomField(row.id, i)}
+                  >×</button>
+                </div>
+                <input
+                  type="text"
+                  className="cell-input"
+                  value={field.value}
+                  onChange={(e) => onCustomFieldChange(row.id, i, 'value', e.target.value)}
+                  placeholder={t.fieldValue}
+                />
+              </div>
+            ))}
+            <div className="card-actions">
+              <button className="btn btn-small btn-ghost" onClick={() => onAddCustomField(row.id)}>
+                {t.addField}
+              </button>
+              <button className="btn-row-action danger" onClick={() => onDelete(row.id)}>
+                {t.deleteBtn}
+              </button>
+            </div>
+            {reminderColumns.map(renderCardField)}
+          </div>
+        )}
       </div>
     );
   }

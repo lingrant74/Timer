@@ -52,6 +52,10 @@ const strings = {
     fieldName: 'Field name',
     fieldValue: 'Value',
     phoneReminders: 'Phone reminders',
+    untitledRecord: 'Untitled record',
+    noDueDate: 'No due date',
+    editRecord: 'Edit',
+    collapseRecord: 'Done',
 
     // Timers page
     appTitle: 'Timers',
@@ -151,6 +155,10 @@ const strings = {
     fieldName: '字段名',
     fieldValue: '值',
     phoneReminders: '手机提醒',
+    untitledRecord: '未命名记录',
+    noDueDate: '无到期日',
+    editRecord: '编辑',
+    collapseRecord: '完成',
 
     // Timers page
     appTitle: '计时器',

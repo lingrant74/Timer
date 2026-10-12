@@ -89,7 +89,7 @@ export default function RecordsPage({ t, lang, subscriptionId, notificationsEnab
 
   // Convert flat row to API shape for saving
   function rowToPayload(row) {
-    const { id, customFields, reminder, dueDate, _subscriptionId, ...data } = row;
+    const { id, customFields, reminder, dueDate, _subscriptionId, _isNew, ...data } = row;
     return { data, customFields: customFields || [], reminder: reminder || '', dueDate: dueDate || '' };
   }
 
@@ -116,7 +116,7 @@ export default function RecordsPage({ t, lang, subscriptionId, notificationsEnab
         dueDate: '',
         subscriptionId: subscriptionId || null,
       });
-      setRows((prev) => [recordToRow(record), ...prev]);
+      setRows((prev) => [{ ...recordToRow(record), _isNew: true }, ...prev]);
     } catch {
       setError(t.errorCreate);
     }
