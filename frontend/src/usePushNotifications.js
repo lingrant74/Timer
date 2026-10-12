@@ -19,19 +19,35 @@ function isPushSupported() {
 }
 
 export function usePushNotifications() {
-  const [subscriptionId, setSubscriptionId] = useState(
-    () => localStorage.getItem('subscriptionId') || null
-  );
+  const [subscriptionId, setSubscriptionId] = useState(null);
   const [enabled, setEnabled] = useState(false);
   const [error, setError]     = useState(null);
 
   useEffect(() => {
-    // Guard: don't access Notification API if it doesn't exist (plain iOS Safari)
-    if (!isPushSupported()) return;
-    if (Notification.permission === 'granted' && subscriptionId) {
-      setEnabled(true);
+    // Re-save the browser's existing push subscription whenever the app opens.
+    // This repairs the server-side ID automatically if a deployment replaced
+    // an ephemeral database while the phone retained its subscription.
+    if (!isPushSupported() || Notification.permission !== 'granted') return;
+    let cancelled = false;
+
+    async function restoreSubscription() {
+      try {
+        const registration = await navigator.serviceWorker.getRegistration();
+        const subscription = await registration?.pushManager.getSubscription();
+        if (!subscription) return;
+        const { subscriptionId: id } = await saveSubscription(subscription.toJSON());
+        if (cancelled) return;
+        localStorage.setItem('subscriptionId', id);
+        setSubscriptionId(id);
+        setEnabled(true);
+      } catch (err) {
+        if (!cancelled) setError(`Could not restore notifications: ${err.message}`);
+      }
     }
-  }, [subscriptionId]);
+
+    restoreSubscription();
+    return () => { cancelled = true; };
+  }, []);
 
   async function enable() {
     setError(null);
@@ -53,10 +69,11 @@ export function usePushNotifications() {
 
       const publicKey = await getPublicKey();
 
-      const subscription = await reg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(publicKey),
-      });
+      const existingSubscription = await reg.pushManager.getSubscription();
+      const subscription = existingSubscription || await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(publicKey),
+        });
 
       const { subscriptionId: id } = await saveSubscription(subscription.toJSON());
 

@@ -148,6 +148,10 @@ app.get('/api/records', (req, res) => {
 app.post('/api/records', (req, res) => {
   const { data, customFields, reminder, dueDate, subscriptionId } = req.body;
   const id = crypto.randomUUID();
+  const requestedSubscriptionId = Number(subscriptionId);
+  const validSubscription = Number.isInteger(requestedSubscriptionId)
+    ? db.prepare('SELECT id FROM subscriptions WHERE id = ?').get(requestedSubscriptionId)
+    : null;
 
   db.prepare(`
     INSERT INTO records (id, data, custom_fields, reminder, due_date, subscription_id)
@@ -158,7 +162,7 @@ app.post('/api/records', (req, res) => {
     JSON.stringify(customFields || []),
     reminder || '',
     dueDate || '',
-    subscriptionId ?? null
+    validSubscription?.id ?? null
   );
 
   const record = db.prepare('SELECT * FROM records WHERE id = ?').get(id);

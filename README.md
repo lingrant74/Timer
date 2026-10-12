@@ -124,7 +124,12 @@ Requires iOS 16.4+.
    - `VAPID_PRIVATE_KEY`
    - `VAPID_SUBJECT`
    - `FRONTEND_URL` — your Vercel/Netlify URL, e.g. `https://your-app.vercel.app`
+   - `DATABASE_PATH` — set this to the mounted persistent-disk path, e.g. `/var/data/timers.db`
    - `PORT` — Render sets this automatically; you can omit it.
+
+5. To keep records through redeploys, attach a Render persistent disk mounted
+   at `/var/data` and set `DATABASE_PATH=/var/data/timers.db`. Without a
+   persistent disk, Render's temporary filesystem is erased during redeploys.
 
 > **Note:** Render's free tier spins down after inactivity. The background timer checker stops while the server is asleep. Use a paid tier or a keep-alive service (e.g. UptimeRobot) if you need reliable notifications.
 
