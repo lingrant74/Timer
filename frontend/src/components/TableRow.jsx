@@ -1,4 +1,19 @@
+import { useState, useEffect } from 'react';
 import CellInput from './CellInput';
+
+const AGENT_FIELD_IDS = ['agentName', 'agentCompany', 'agentPhone'];
+
+function getRecordDueStatus(value) {
+  if (!value) return '';
+  const due = new Date(value.includes('T') ? value : `${value}T23:59:59`).getTime();
+  if (Number.isNaN(due)) return '';
+  const diff = due - Date.now();
+  if (diff <= 0) return 'overdue';
+  if (diff <= 24 * 60 * 60 * 1000) return 'critical';
+  if (diff <= 3 * 24 * 60 * 60 * 1000) return 'urgent';
+  if (diff <= 7 * 24 * 60 * 60 * 1000) return 'soon';
+  return '';
+}
 
 export default function TableRow({
   row, columns, lang, t, mode,
@@ -7,23 +22,44 @@ export default function TableRow({
 }) {
   const customFields = row.customFields || [];
   const placeholder = lang === 'zh' ? '点击编辑' : 'Click to edit';
+  const [, setClockTick] = useState(0);
+
+  useEffect(() => {
+    if (mode !== 'card' || !row.dueDate) return undefined;
+    const timer = setInterval(() => setClockTick((tick) => tick + 1), 60000);
+    return () => clearInterval(timer);
+  }, [mode, row.dueDate]);
 
   if (mode === 'card') {
+    const dueStatus = getRecordDueStatus(row.dueDate);
+    const agentColumns = columns.filter((col) => AGENT_FIELD_IDS.includes(col.id));
+    const reminderColumns = columns.filter((col) => col.id === 'reminder');
+    const otherColumns = columns.filter(
+      (col) => !AGENT_FIELD_IDS.includes(col.id) && col.id !== 'reminder'
+    );
+    const nameIndex = otherColumns.findIndex((col) => col.id === 'name');
+    const fieldsBeforeAgent = nameIndex >= 0 ? otherColumns.slice(0, nameIndex + 1) : [];
+    const fieldsAfterAgent = nameIndex >= 0 ? otherColumns.slice(nameIndex + 1) : otherColumns;
+
+    const renderCardField = (col) => (
+      <div key={col.id} className="card-field">
+        <label>{col.name[lang] || col.name.en || col.name.zh}</label>
+        <CellInput
+          type={col.type}
+          value={row[col.id] || ''}
+          onChange={(val) => onCellChange(row.id, col.id, val)}
+          lang={lang}
+          t={t}
+          placeholder={placeholder}
+        />
+      </div>
+    );
+
     return (
-      <div className="record-card">
-        {columns.map((col) => (
-          <div key={col.id} className="card-field">
-            <label>{col.name[lang] || col.name.en || col.name.zh}</label>
-            <CellInput
-              type={col.type}
-              value={row[col.id] || ''}
-              onChange={(val) => onCellChange(row.id, col.id, val)}
-              lang={lang}
-              t={t}
-              placeholder={placeholder}
-            />
-          </div>
-        ))}
+      <div className={`record-card due-card-${dueStatus}`}>
+        {fieldsBeforeAgent.map(renderCardField)}
+        {agentColumns.map(renderCardField)}
+        {fieldsAfterAgent.map(renderCardField)}
         {customFields.map((field, i) => (
           <div key={i} className="card-field custom-field">
             <div className="custom-field-header">
@@ -56,6 +92,7 @@ export default function TableRow({
             {t.deleteBtn}
           </button>
         </div>
+        {reminderColumns.map(renderCardField)}
       </div>
     );
   }

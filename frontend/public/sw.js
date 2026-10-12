@@ -10,10 +10,11 @@ self.addEventListener('push', (event) => {
     body:  data.body  || 'A timer has finished.',
     icon:  '/icon-192.png',
     badge: '/icon-192.png',
-    // tag prevents duplicate notifications for the same timer
-    tag:   `timer-${data.timerId}`,
+    // Separate warning/completion tags avoid notifications replacing each other.
+    tag:   data.tag || `notification-${Date.now()}`,
     // renotify: true re-fires the sound/vibration even if the tag matches
     renotify: true,
+    vibrate: [200, 100, 200],
     data: { url: self.registration.scope },
   };
 

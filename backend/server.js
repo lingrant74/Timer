@@ -201,6 +201,15 @@ app.delete('/api/records', (req, res) => {
   res.json({ success: true });
 });
 
+app.post('/api/records/link-subscription', (req, res) => {
+  const subscriptionId = Number(req.body.subscriptionId);
+  const subscription = db.prepare('SELECT id FROM subscriptions WHERE id = ?').get(subscriptionId);
+  if (!subscription) return res.status(404).json({ error: 'Subscription not found.' });
+
+  const result = db.prepare('UPDATE records SET subscription_id = ?').run(subscriptionId);
+  res.json({ success: true, linkedRecords: result.changes });
+});
+
 function recordToView(r) {
   return {
     id: r.id,
@@ -233,12 +242,29 @@ async function checkExpiredTimers() {
     await sendPush(timer, {
       title: 'Timer done!',
       body: `"${timer.name}" has finished.`,
+      tag: `timer-${timer.id}-done`,
     });
   }
 }
 
 // Record reminder check — every 60 seconds
-const REMINDER_MINUTES = { '15m': 15, '1h': 60, '1d': 1440 };
+const REMINDER_MINUTES = {
+  '0m': 0,
+  '15m': 15,
+  '1h': 60,
+  '1d': 1440,
+  '3d': 4320,
+  '1w': 10080,
+  '1mo': 43200,
+};
+
+function dueDateToMs(dueDate) {
+  if (!dueDate) return NaN;
+  // Date-only values were saved by older clients and remain due at the end of
+  // that day. New clients save the user's selected date/time as an ISO value.
+  const value = dueDate.includes('T') ? dueDate : `${dueDate}T23:59:59`;
+  return new Date(value).getTime();
+}
 
 async function checkRecordReminders() {
   const now = Date.now();
@@ -250,9 +276,10 @@ async function checkRecordReminders() {
   `).all();
 
   for (const record of records) {
-    const dueMs = new Date(record.due_date + 'T23:59:59').getTime();
+    const dueMs = dueDateToMs(record.due_date);
+    if (Number.isNaN(dueMs)) continue;
     const minutes = REMINDER_MINUTES[record.reminder];
-    if (!minutes) continue;
+    if (minutes === undefined) continue;
 
     const alertAt = dueMs - minutes * 60 * 1000;
     if (now >= alertAt) {
@@ -262,17 +289,18 @@ async function checkRecordReminders() {
       await sendPush(record, {
         title: 'Reminder',
         body: `"${label}" is due soon.`,
+        tag: `record-${record.id}-reminder`,
       });
     }
   }
 }
 
-async function sendPush(row, { title, body }) {
+async function sendPush(row, { title, body, tag }) {
   const subscription = {
     endpoint: row.endpoint,
     keys: { p256dh: row.p256dh, auth: row.auth },
   };
-  const payload = JSON.stringify({ title, body });
+  const payload = JSON.stringify({ title, body, tag });
 
   try {
     await webpush.sendNotification(subscription, payload);

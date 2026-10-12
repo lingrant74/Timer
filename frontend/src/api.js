@@ -68,6 +68,13 @@ export const deleteRecord = (id) =>
 export const clearRecords = () =>
   request('/records', { method: 'DELETE' });
 
+export const linkRecordsSubscription = (subscriptionId) =>
+  request('/records/link-subscription', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ subscriptionId }),
+  });
+
 // ── Record Columns ───────────────────────────────────────────────────────
 
 export const getRecordColumns = () => request('/record-columns');

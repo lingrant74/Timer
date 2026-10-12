@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { getRecords, createRecord, updateRecord, deleteRecord, clearRecords, getRecordColumns, saveRecordColumns } from '../api';
+import { getRecords, createRecord, updateRecord, deleteRecord, clearRecords, getRecordColumns, saveRecordColumns, linkRecordsSubscription } from '../api';
 import DataTable from '../components/DataTable';
 import ManageColumnsModal from '../components/ManageColumnsModal';
 
@@ -8,7 +8,20 @@ const POLL_INTERVAL = 300000; // 5 minutes
 const DEFAULT_COLUMNS = [
   { id: 'address', name: { en: 'Address', zh: '地址' }, type: 'text' },
   { id: 'idNumber', name: { en: 'ID', zh: '编号' }, type: 'text' },
+  { id: 'topCustom1', name: { en: 'Top Field 1', zh: '上方自定义 1' }, type: 'text' },
+  { id: 'topCustom2', name: { en: 'Top Field 2', zh: '上方自定义 2' }, type: 'text' },
+  { id: 'topCustom3', name: { en: 'Top Field 3', zh: '上方自定义 3' }, type: 'text' },
+  { id: 'topCustom4', name: { en: 'Top Field 4', zh: '上方自定义 4' }, type: 'text' },
+  { id: 'topCustom5', name: { en: 'Top Field 5', zh: '上方自定义 5' }, type: 'text' },
   { id: 'name', name: { en: 'Name', zh: '姓名' }, type: 'text' },
+  { id: 'agentName', name: { en: 'Agent Name', zh: '经纪人姓名' }, type: 'text' },
+  { id: 'agentCompany', name: { en: 'Company', zh: '经纪人公司' }, type: 'text' },
+  { id: 'agentPhone', name: { en: 'Phone', zh: '电话号码' }, type: 'tel' },
+  { id: 'mainCustom1', name: { en: 'Custom 1', zh: '自定义 1' }, type: 'text' },
+  { id: 'mainCustom2', name: { en: 'Custom 2', zh: '自定义 2' }, type: 'text' },
+  { id: 'mainCustom3', name: { en: 'Custom 3', zh: '自定义 3' }, type: 'text' },
+  { id: 'mainCustom4', name: { en: 'Custom 4', zh: '自定义 4' }, type: 'text' },
+  { id: 'mainCustom5', name: { en: 'Custom 5', zh: '自定义 5' }, type: 'text' },
   { id: 'personInCharge', name: { en: 'Person in Charge', zh: '经办人' }, type: 'text' },
   { id: 'handlerSignature', name: { en: 'Handler Signature', zh: '经手签名' }, type: 'text' },
   { id: 'amount', name: { en: 'Amount', zh: '金额' }, type: 'number' },
@@ -16,7 +29,7 @@ const DEFAULT_COLUMNS = [
   { id: 'reminder', name: { en: 'Reminder', zh: '提醒' }, type: 'reminder' },
 ];
 
-export default function RecordsPage({ t, lang, subscriptionId }) {
+export default function RecordsPage({ t, lang, subscriptionId, notificationsEnabled, enableNotifications, pushError }) {
   const [columns, setColumns] = useState(DEFAULT_COLUMNS);
   const [rows, setRows] = useState([]);
   const [search, setSearch] = useState('');
@@ -41,6 +54,15 @@ export default function RecordsPage({ t, lang, subscriptionId }) {
     const id = setInterval(loadData, POLL_INTERVAL);
     return () => clearInterval(id);
   }, [loadData]);
+
+  useEffect(() => {
+    if (!subscriptionId) return;
+    linkRecordsSubscription(subscriptionId)
+      .then(() => {
+        setRows((current) => current.map((row) => ({ ...row, _subscriptionId: subscriptionId })));
+      })
+      .catch(() => setError(t.errorCreate));
+  }, [subscriptionId, t.errorCreate]);
 
   // Reload on tab focus
   useEffect(() => {
@@ -218,6 +240,19 @@ export default function RecordsPage({ t, lang, subscriptionId }) {
       </header>
 
       {error && <div className="banner error">{error}</div>}
+      {pushError && <div className="banner error">{pushError}</div>}
+
+      <div className="records-notification-row">
+        <span>{t.phoneReminders}</span>
+        <button
+          type="button"
+          className={`btn btn-notify ${notificationsEnabled ? 'is-on' : ''}`}
+          onClick={enableNotifications}
+          disabled={notificationsEnabled}
+        >
+          {notificationsEnabled ? t.notificationsOn : t.enableNotifications}
+        </button>
+      </div>
 
       <div className="toolbar">
         <div className="search-wrapper">

@@ -197,6 +197,21 @@ body {
   margin-left: auto;
 }
 
+.records-notification-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  padding: 0.7rem 0.8rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
 /* ── Buttons ── */
 .btn {
   padding: 0.45rem 0.75rem;
@@ -438,6 +453,36 @@ body {
   flex-direction: column;
   gap: 0.2rem;
 }
+.date-time-inputs {
+  display: grid;
+  grid-template-columns: minmax(125px, 1fr) minmax(92px, 0.65fr);
+  gap: 0.25rem;
+}
+.date-time-inputs .cell-input {
+  min-width: 0;
+}
+.date-time-inputs .time-input:disabled {
+  color: var(--muted);
+  background: var(--surface);
+  cursor: not-allowed;
+}
+.due-date-upcoming .date-time-inputs .cell-input {
+  border-color: #60a5fa;
+  background: #eff6ff;
+}
+.due-date-soon .date-time-inputs .cell-input {
+  border-color: #fbbf24;
+  background: #fffbeb;
+}
+.due-date-urgent .date-time-inputs .cell-input {
+  border-color: #fb923c;
+  background: #fff7ed;
+}
+.due-date-overdue .date-time-inputs .cell-input {
+  border-color: var(--danger);
+  background: var(--danger-light);
+  color: #b91c1c;
+}
 .countdown-toggle {
   background: none;
   border: none;
@@ -462,6 +507,9 @@ body {
   transition: background 0.15s;
 }
 .countdown-badge:hover { background: #dbeafe; }
+.countdown-badge.upcoming { background: #eff6ff; color: #2563eb; }
+.countdown-badge.soon { background: #fffbeb; color: #b45309; }
+.countdown-badge.urgent { background: #fff7ed; color: #c2410c; }
 .countdown-badge.overdue { background: var(--danger-light); color: var(--danger); }
 
 /* ── Checkbox cell ── */
@@ -493,7 +541,13 @@ body {
   flex-direction: column;
   gap: 0.5rem;
   box-shadow: var(--shadow-sm);
+  border-left: 5px solid transparent;
+  transition: background-color 0.35s, border-color 0.35s;
 }
+.record-card.due-card-soon { background: #fff7f7; border-left-color: #fecaca; }
+.record-card.due-card-urgent { background: #fff1f2; border-left-color: #fda4af; }
+.record-card.due-card-critical { background: #ffe4e6; border-left-color: #fb7185; }
+.record-card.due-card-overdue { background: #fecdd3; border-left-color: #ef4444; }
 .card-field { display: flex; flex-direction: column; gap: 0.15rem; }
 .card-field label {
   font-size: 0.65rem;
@@ -536,6 +590,7 @@ body {
   .add-column-fields { flex-direction: column; }
   .add-column-fields .col-name-input { width: 100%; }
   .summary { flex-wrap: wrap; }
+  .date-time-inputs { grid-template-columns: minmax(0, 1fr) minmax(105px, 0.55fr); }
 }
 
 /* Landscape + wider screens — always table layout */
@@ -743,7 +798,35 @@ body {
 .form-card h2 { margin-bottom: 0.6rem; }
 .form-fields { display: flex; flex-direction: column; gap: 0.5rem; }
 .field-group { display: flex; flex-direction: column; gap: 0.2rem; }
+.field-label { font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); }
 .field-error { font-size: 0.75rem; color: var(--danger); padding-left: 0.2rem; }
+
+.duration-presets {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.4rem;
+  margin-top: 0.2rem;
+}
+
+.preset-btn {
+  min-height: 42px;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--card);
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.preset-btn.active {
+  background: var(--accent-light);
+  border-color: var(--accent);
+  color: var(--accent);
+}
 
 .form-fields input[type="text"] {
   width: 100%;
@@ -812,3 +895,197 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 .btn-delete:hover { color: var(--danger); border-color: var(--danger); background: var(--danger-light); }
+
+/* ── Mobile app layout ──
+   Keep the product in a focused phone-sized shell on large displays while
+   allowing it to fill the viewport naturally on a phone. */
+html {
+  min-height: 100%;
+  background: #e2e8f0;
+}
+
+body {
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  background: var(--bg);
+  box-shadow: 0 0 32px rgba(15, 23, 42, 0.12);
+}
+
+.app-shell {
+  min-height: 100dvh;
+  background: var(--bg);
+}
+
+.top-bar {
+  min-height: 52px;
+  padding-inline: 1rem;
+}
+
+.main-content {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.page {
+  max-width: none;
+  padding: 1rem;
+}
+
+.page-header {
+  margin-bottom: 1rem;
+}
+
+.page-header h1 {
+  font-size: 1.3rem;
+}
+
+.summary {
+  flex-wrap: wrap;
+}
+
+.toolbar {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.65rem;
+}
+
+.search-wrapper {
+  max-width: none;
+  min-width: 0;
+}
+
+.search-input {
+  min-height: 44px;
+  font-size: 16px;
+}
+
+.toolbar-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-left: 0;
+}
+
+.toolbar-buttons .btn {
+  min-height: 44px;
+  justify-content: center;
+}
+
+.toolbar-buttons .btn-danger:last-child {
+  grid-column: 1 / -1;
+}
+
+/* Records are editable cards in the mobile product; the table remains in the
+   source for a future desktop mode but is intentionally hidden here. */
+.desktop-only { display: none !important; }
+.mobile-only { display: block !important; }
+
+.cards-wrapper {
+  gap: 0.75rem;
+}
+
+.record-card {
+  padding: 1rem;
+  gap: 0.75rem;
+}
+
+.card-field {
+  gap: 0.3rem;
+}
+
+.card-field label {
+  font-size: 0.7rem;
+}
+
+.card-field .cell-input,
+.card-field .cell-select {
+  min-height: 44px;
+  font-size: 16px;
+}
+
+.date-time-inputs {
+  grid-template-columns: minmax(0, 1fr) minmax(108px, 0.55fr);
+  gap: 0.4rem;
+}
+
+.card-actions {
+  justify-content: space-between;
+  padding-top: 0.75rem;
+}
+
+.card-actions .btn,
+.card-actions .btn-row-action {
+  min-height: 40px;
+  padding-inline: 0.85rem;
+}
+
+.tab-bar {
+  left: 50%;
+  right: auto;
+  width: min(100%, 520px);
+  transform: translateX(-50%);
+}
+
+.tab-btn {
+  font-size: 0.72rem;
+}
+
+.tab-btn svg {
+  width: 22px;
+  height: 22px;
+}
+
+.timers-page .page-header {
+  align-items: flex-start;
+}
+
+.btn-notify {
+  min-height: 40px;
+}
+
+.timer-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-areas:
+    "name time delete"
+    "mods mods mods";
+  padding: 0.85rem 0.25rem;
+  gap: 0.6rem;
+}
+
+.timer-row .timer-name { grid-area: name; }
+.timer-row .timer-time { grid-area: time; }
+.timer-row .btn-delete { grid-area: delete; }
+
+.timer-modifiers {
+  grid-area: mods;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.4rem;
+}
+
+.btn-mod,
+.timer-row .btn-delete {
+  min-height: 40px;
+}
+
+.modal-overlay {
+  align-items: flex-end;
+  padding: 0;
+}
+
+.modal {
+  max-width: 520px;
+  max-height: 92dvh;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+@media (max-width: 360px) {
+  .page { padding-inline: 0.75rem; }
+  .toolbar-buttons { grid-template-columns: 1fr; }
+  .toolbar-buttons .btn-danger:last-child { grid-column: auto; }
+  .date-time-inputs { grid-template-columns: 1fr; }
+  .timers-page .page-header { flex-direction: column; }
+  .btn-notify { width: 100%; }
+}

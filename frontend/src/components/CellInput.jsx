@@ -1,11 +1,57 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-const REMINDER_PRESETS_EN = ['None', 'Today', 'Tomorrow', '3 days before', '7 days before'];
-const REMINDER_PRESETS_ZH = ['无', '今天', '明天', '3天前', '7天前'];
+const REMINDER_OPTIONS = {
+  en: [
+    { value: '', label: 'None' },
+    { value: '0m', label: 'At due time' },
+    { value: '15m', label: '15 minutes before' },
+    { value: '1h', label: '1 hour before' },
+    { value: '1d', label: '1 day before' },
+    { value: '3d', label: '3 days before' },
+    { value: '1w', label: '1 week before' },
+    { value: '1mo', label: '1 month before' },
+  ],
+  zh: [
+    { value: '', label: '无' },
+    { value: '0m', label: '到期时' },
+    { value: '15m', label: '提前15分钟' },
+    { value: '1h', label: '提前1小时' },
+    { value: '1d', label: '提前1天' },
+    { value: '3d', label: '提前3天' },
+    { value: '1w', label: '提前1周' },
+    { value: '1mo', label: '提前1个月' },
+  ],
+};
+
+function padDatePart(value) {
+  return String(value).padStart(2, '0');
+}
+
+function getDateTimeInputValues(value) {
+  if (!value) return { date: '', time: '' };
+  if (!value.includes('T')) return { date: value, time: '23:59' };
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return { date: '', time: '' };
+
+  return {
+    date: `${parsed.getFullYear()}-${padDatePart(parsed.getMonth() + 1)}-${padDatePart(parsed.getDate())}`,
+    time: `${padDatePart(parsed.getHours())}:${padDatePart(parsed.getMinutes())}`,
+  };
+}
+
+function toStoredDateTime(date, time) {
+  if (!date || !time) return '';
+  const parsed = new Date(`${date}T${time}:00`);
+  return Number.isNaN(parsed.getTime()) ? '' : parsed.toISOString();
+}
 
 function getCountdownText(dateStr, t) {
   if (!dateStr) return null;
-  const due = new Date(dateStr + 'T23:59:59').getTime();
+  // Older records contain only YYYY-MM-DD. Keep treating those as due at the
+  // end of the day, while newer values include the time selected by the user.
+  const due = new Date(dateStr.includes('T') ? dateStr : `${dateStr}T23:59:59`).getTime();
+  if (Number.isNaN(due)) return null;
   const now = Date.now();
   const diff = due - now;
   if (diff <= 0) return t.overdue;
@@ -17,8 +63,27 @@ function getCountdownText(dateStr, t) {
   return t.countdownMins(mins);
 }
 
+function getDueDateStatus(dateStr) {
+  if (!dateStr) return '';
+  const due = new Date(dateStr.includes('T') ? dateStr : `${dateStr}T23:59:59`).getTime();
+  if (Number.isNaN(due)) return '';
+  const diff = due - Date.now();
+  if (diff <= 0) return 'overdue';
+  if (diff <= 24 * 60 * 60 * 1000) return 'urgent';
+  if (diff <= 3 * 24 * 60 * 60 * 1000) return 'soon';
+  if (diff <= 7 * 24 * 60 * 60 * 1000) return 'upcoming';
+  return '';
+}
+
 export default function CellInput({ type, value, onChange, lang, t, placeholder }) {
   const [showCountdown, setShowCountdown] = useState(false);
+  const [, setClockTick] = useState(0);
+
+  useEffect(() => {
+    if (type !== 'date') return undefined;
+    const timer = setInterval(() => setClockTick((tick) => tick + 1), 60000);
+    return () => clearInterval(timer);
+  }, [type]);
 
   if (type === 'number') {
     return (
@@ -33,26 +98,61 @@ export default function CellInput({ type, value, onChange, lang, t, placeholder 
     );
   }
 
+  if (type === 'tel') {
+    return (
+      <input
+        type="tel"
+        inputMode="tel"
+        className="cell-input"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+      />
+    );
+  }
+
   if (type === 'date') {
     const countdown = value ? getCountdownText(value, t) : null;
+    const status = getDueDateStatus(value);
+    const { date: dateValue, time: timeValue } = getDateTimeInputValues(value);
+
+    const handleDateChange = (date) => {
+      onChange(date ? toStoredDateTime(date, timeValue || '23:59') : '');
+    };
+
+    const handleTimeChange = (time) => {
+      if (dateValue && time) onChange(toStoredDateTime(dateValue, time));
+    };
+
     if (showCountdown && countdown) {
       const isOverdue = countdown === t.overdue;
       return (
-        <div className="due-date-cell" onClick={() => setShowCountdown(false)}>
-          <span className={`countdown-badge ${isOverdue ? 'overdue' : ''}`}>
+        <div className={`due-date-cell due-date-${status}`} onClick={() => setShowCountdown(false)}>
+          <span className={`countdown-badge ${status || (isOverdue ? 'overdue' : '')}`}>
             {countdown}
           </span>
         </div>
       );
     }
     return (
-      <div className="due-date-cell">
-        <input
-          type="date"
-          className="cell-input"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-        />
+      <div className={`due-date-cell due-date-${status}`}>
+        <div className="date-time-inputs">
+          <input
+            type="date"
+            className="cell-input date-input"
+            value={dateValue}
+            onChange={(e) => handleDateChange(e.target.value)}
+            aria-label={t.dateLabel}
+          />
+          <input
+            type="time"
+            className="cell-input time-input"
+            value={timeValue}
+            onChange={(e) => handleTimeChange(e.target.value)}
+            aria-label={t.timeLabel}
+            disabled={!dateValue}
+          />
+        </div>
         {value && (
           <button className="countdown-toggle" onClick={() => setShowCountdown(true)} type="button">
             {t.showCountdown}
@@ -87,41 +187,18 @@ export default function CellInput({ type, value, onChange, lang, t, placeholder 
   }
 
   if (type === 'reminder') {
-    const presets = lang === 'zh' ? REMINDER_PRESETS_ZH : REMINDER_PRESETS_EN;
+    const options = REMINDER_OPTIONS[lang] || REMINDER_OPTIONS.en;
     return (
       <div className="reminder-cell">
         <select
           className="cell-select"
-          value={presets.includes(value) ? value : '__custom__'}
-          onChange={(e) => {
-            if (e.target.value === '__custom__') return;
-            onChange(e.target.value);
-          }}
+          value={options.some((option) => option.value === value) ? value : ''}
+          onChange={(e) => onChange(e.target.value)}
         >
-          {presets.map((p) => (
-            <option key={p} value={p}>{p}</option>
+          {options.map((option) => (
+            <option key={option.value || 'none'} value={option.value}>{option.label}</option>
           ))}
-          <option value="__custom__">{lang === 'zh' ? '自定义...' : 'Custom...'}</option>
         </select>
-        {!presets.includes(value) && value !== '' && (
-          <input
-            type="text"
-            className="cell-input reminder-custom"
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            placeholder={lang === 'zh' ? '输入自定义提醒' : 'Custom reminder'}
-          />
-        )}
-        {value === '__custom__' || (!presets.includes(value) && value === '') ? (
-          <input
-            type="text"
-            className="cell-input reminder-custom"
-            value=""
-            onChange={(e) => onChange(e.target.value)}
-            placeholder={lang === 'zh' ? '输入自定义提醒' : 'Custom reminder'}
-            autoFocus
-          />
-        ) : null}
       </div>
     );
   }

@@ -5,11 +5,20 @@ import { usePushNotifications } from './usePushNotifications';
 import strings from './lang';
 
 export default function App() {
-  const [tab, setTab] = useState(() => localStorage.getItem('activeTab') || 'records');
+  const [tab, setTab] = useState(() => {
+    const requestedTab = new URLSearchParams(window.location.search).get('tab');
+    if (requestedTab === 'records' || requestedTab === 'timers') return requestedTab;
+    return localStorage.getItem('activeTab') || 'records';
+  });
   const [lang, setLang] = useState(() => localStorage.getItem('lang') || 'en');
 
   const t = strings[lang];
-  const { subscriptionId } = usePushNotifications();
+  const {
+    subscriptionId,
+    enabled: notificationsEnabled,
+    enable: enableNotifications,
+    error: pushError,
+  } = usePushNotifications();
 
   function toggleLang() {
     const next = lang === 'en' ? 'zh' : 'en';
@@ -31,7 +40,16 @@ export default function App() {
       </div>
 
       <main className="main-content">
-        {tab === 'records' ? <RecordsPage t={t} lang={lang} subscriptionId={subscriptionId} /> : <TimersPage t={t} />}
+        {tab === 'records' ? (
+          <RecordsPage
+            t={t}
+            lang={lang}
+            subscriptionId={subscriptionId}
+            notificationsEnabled={notificationsEnabled}
+            enableNotifications={enableNotifications}
+            pushError={pushError}
+          />
+        ) : <TimersPage t={t} />}
       </main>
 
       <nav className="tab-bar">
