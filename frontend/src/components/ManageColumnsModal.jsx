@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 const COLUMN_TYPES = ['text', 'textarea', 'tel', 'number', 'date', 'dropdown', 'checkbox', 'reminder'];
 
@@ -17,15 +17,25 @@ function typeLabel(type, lang) {
 }
 
 export default function ManageColumnsModal({ columns, setColumns, lang, t, onClose }) {
+  const [orderedColumns, setOrderedColumns] = useState(columns);
   const [newNameEn, setNewNameEn] = useState('');
   const [newNameZh, setNewNameZh] = useState('');
   const [newType, setNewType] = useState('text');
+  const [draggingId, setDraggingId] = useState(null);
+  const orderedColumnsRef = useRef(columns);
+  const draggingIdRef = useRef(null);
+
+  function applyColumns(next, save = true) {
+    orderedColumnsRef.current = next;
+    setOrderedColumns(next);
+    if (save) setColumns(next);
+  }
 
   function handleAdd() {
     if (!newNameEn && !newNameZh) return;
     const id = 'col_' + crypto.randomUUID().slice(0, 8);
-    setColumns((prev) => [
-      ...prev,
+    applyColumns([
+      ...orderedColumnsRef.current,
       { id, name: { en: newNameEn || newNameZh, zh: newNameZh || newNameEn }, type: newType },
     ]);
     setNewNameEn('');
@@ -35,32 +45,55 @@ export default function ManageColumnsModal({ columns, setColumns, lang, t, onClo
 
   function handleDelete(id) {
     if (window.confirm(t.deleteColumnConfirm)) {
-      setColumns((prev) => prev.filter((col) => col.id !== id));
+      applyColumns(orderedColumnsRef.current.filter((col) => col.id !== id));
     }
   }
 
   function handleRename(id, langKey, value) {
-    setColumns((prev) =>
-      prev.map((col) =>
+    applyColumns(
+      orderedColumnsRef.current.map((col) =>
         col.id === id ? { ...col, name: { ...col.name, [langKey]: value } } : col
       )
     );
   }
 
   function handleTypeChange(id, type) {
-    setColumns((prev) =>
-      prev.map((col) => (col.id === id ? { ...col, type } : col))
+    applyColumns(
+      orderedColumnsRef.current.map((col) => (col.id === id ? { ...col, type } : col))
     );
   }
 
-  function handleMove(index, direction) {
-    const target = index + direction;
-    if (target < 0 || target >= columns.length) return;
-    setColumns((prev) => {
-      const arr = [...prev];
-      [arr[index], arr[target]] = [arr[target], arr[index]];
-      return arr;
-    });
+  function handleDragStart(event, id) {
+    event.preventDefault();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    draggingIdRef.current = id;
+    setDraggingId(id);
+  }
+
+  function handleDragMove(event) {
+    const activeId = draggingIdRef.current;
+    if (!activeId) return;
+    const targetItem = document.elementFromPoint(event.clientX, event.clientY)?.closest('.column-item');
+    const targetId = targetItem?.dataset.columnId;
+    if (!targetId || targetId === activeId) return;
+
+    const next = [...orderedColumnsRef.current];
+    const from = next.findIndex((column) => column.id === activeId);
+    const to = next.findIndex((column) => column.id === targetId);
+    if (from < 0 || to < 0) return;
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    applyColumns(next, false);
+  }
+
+  function handleDragEnd(event) {
+    if (!draggingIdRef.current) return;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    draggingIdRef.current = null;
+    setDraggingId(null);
+    setColumns(orderedColumnsRef.current);
   }
 
   return (
@@ -73,20 +106,22 @@ export default function ManageColumnsModal({ columns, setColumns, lang, t, onClo
 
         <div className="modal-body">
           <div className="columns-list">
-            {columns.map((col, index) => (
-              <div key={col.id} className="column-item">
-                <div className="column-move">
-                  <button
-                    className="btn-icon btn-icon-sm"
-                    onClick={() => handleMove(index, -1)}
-                    disabled={index === 0}
-                  >↑</button>
-                  <button
-                    className="btn-icon btn-icon-sm"
-                    onClick={() => handleMove(index, 1)}
-                    disabled={index === columns.length - 1}
-                  >↓</button>
-                </div>
+            {orderedColumns.map((col) => (
+              <div
+                key={col.id}
+                data-column-id={col.id}
+                className={`column-item ${draggingId === col.id ? 'is-dragging' : ''}`}
+              >
+                <button
+                  type="button"
+                  className="column-drag-handle"
+                  aria-label={t.dragToReorder}
+                  title={t.dragToReorder}
+                  onPointerDown={(event) => handleDragStart(event, col.id)}
+                  onPointerMove={handleDragMove}
+                  onPointerUp={handleDragEnd}
+                  onPointerCancel={handleDragEnd}
+                >⠿</button>
                 <div className="column-names">
                   <input
                     type="text"

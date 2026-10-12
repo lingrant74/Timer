@@ -711,7 +711,28 @@ body {
   border: 1px solid var(--border);
   border-radius: var(--radius);
 }
-.column-move { display: flex; flex-direction: column; gap: 0.15rem; }
+.column-drag-handle {
+  width: 34px;
+  min-width: 34px;
+  height: 42px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.column-drag-handle:active { cursor: grabbing; background: var(--accent-light); color: var(--accent); }
+.column-item.is-dragging {
+  border-color: var(--accent);
+  background: var(--accent-light);
+  box-shadow: var(--shadow-md);
+  opacity: 0.92;
+}
 .column-names { flex: 1; display: flex; gap: 0.35rem; min-width: 0; }
 .col-name-input {
   flex: 1;
