@@ -733,6 +733,7 @@ body {
   box-shadow: var(--shadow-md);
   opacity: 0.92;
 }
+.columns-list.is-reordering { user-select: none; }
 .column-names { flex: 1; display: flex; gap: 0.35rem; min-width: 0; }
 .col-name-input {
   flex: 1;

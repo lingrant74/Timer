@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 const COLUMN_TYPES = ['text', 'textarea', 'tel', 'number', 'date', 'dropdown', 'checkbox', 'reminder'];
 
@@ -24,6 +24,13 @@ export default function ManageColumnsModal({ columns, setColumns, lang, t, onClo
   const [draggingId, setDraggingId] = useState(null);
   const orderedColumnsRef = useRef(columns);
   const draggingIdRef = useRef(null);
+  const modalBodyRef = useRef(null);
+  const pointerPositionRef = useRef({ x: 0, y: 0 });
+  const autoScrollFrameRef = useRef(null);
+
+  useEffect(() => () => {
+    if (autoScrollFrameRef.current) cancelAnimationFrame(autoScrollFrameRef.current);
+  }, []);
 
   function applyColumns(next, save = true) {
     orderedColumnsRef.current = next;
@@ -67,13 +74,15 @@ export default function ManageColumnsModal({ columns, setColumns, lang, t, onClo
     event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
     draggingIdRef.current = id;
+    pointerPositionRef.current = { x: event.clientX, y: event.clientY };
     setDraggingId(id);
+    startAutoScroll();
   }
 
-  function handleDragMove(event) {
+  function reorderAtPoint(clientX, clientY) {
     const activeId = draggingIdRef.current;
     if (!activeId) return;
-    const targetItem = document.elementFromPoint(event.clientX, event.clientY)?.closest('.column-item');
+    const targetItem = document.elementFromPoint(clientX, clientY)?.closest('.column-item');
     const targetId = targetItem?.dataset.columnId;
     if (!targetId || targetId === activeId) return;
 
@@ -86,6 +95,41 @@ export default function ManageColumnsModal({ columns, setColumns, lang, t, onClo
     applyColumns(next, false);
   }
 
+  function handleDragMove(event) {
+    pointerPositionRef.current = { x: event.clientX, y: event.clientY };
+    reorderAtPoint(event.clientX, event.clientY);
+  }
+
+  function startAutoScroll() {
+    if (autoScrollFrameRef.current) cancelAnimationFrame(autoScrollFrameRef.current);
+
+    const scrollStep = () => {
+      const body = modalBodyRef.current;
+      if (!body || !draggingIdRef.current) {
+        autoScrollFrameRef.current = null;
+        return;
+      }
+
+      const { x, y } = pointerPositionRef.current;
+      const rect = body.getBoundingClientRect();
+      const edgeSize = 85;
+      let distance = 0;
+      if (y > rect.bottom - edgeSize) {
+        distance = Math.min(22, 4 + (y - (rect.bottom - edgeSize)) * 0.3);
+      } else if (y < rect.top + edgeSize) {
+        distance = -Math.min(22, 4 + ((rect.top + edgeSize) - y) * 0.3);
+      }
+
+      if (distance !== 0) {
+        body.scrollTop += distance;
+        reorderAtPoint(x, y);
+      }
+      autoScrollFrameRef.current = requestAnimationFrame(scrollStep);
+    };
+
+    autoScrollFrameRef.current = requestAnimationFrame(scrollStep);
+  }
+
   function handleDragEnd(event) {
     if (!draggingIdRef.current) return;
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
@@ -93,6 +137,8 @@ export default function ManageColumnsModal({ columns, setColumns, lang, t, onClo
     }
     draggingIdRef.current = null;
     setDraggingId(null);
+    if (autoScrollFrameRef.current) cancelAnimationFrame(autoScrollFrameRef.current);
+    autoScrollFrameRef.current = null;
     setColumns(orderedColumnsRef.current);
   }
 
@@ -104,7 +150,7 @@ export default function ManageColumnsModal({ columns, setColumns, lang, t, onClo
           <button className="btn-icon" onClick={onClose}>×</button>
         </div>
 
-        <div className="modal-body">
+        <div className="modal-body" ref={modalBodyRef}>
           <div className="columns-list">
             {orderedColumns.map((col) => (
               <div
