@@ -296,6 +296,7 @@ body {
 .record-table {
   width: max-content;
   min-width: 100%;
+  table-layout: fixed;
   border-collapse: collapse;
   font-size: 0.8rem;
 }
@@ -313,15 +314,41 @@ body {
   white-space: nowrap;
   position: sticky;
   top: 0;
-  min-width: 145px;
+  overflow: visible;
 }
+
+.column-resize-handle {
+  position: absolute;
+  top: 0;
+  right: -6px;
+  width: 14px;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: col-resize;
+  touch-action: none;
+  z-index: 2;
+}
+.column-resize-handle::after {
+  content: '';
+  position: absolute;
+  top: 20%;
+  bottom: 20%;
+  left: 6px;
+  width: 2px;
+  border-radius: 2px;
+  background: #cbd5e1;
+  opacity: 0.7;
+}
+.column-resize-handle:hover::after,
+.column-resize-handle:active::after { background: var(--accent); opacity: 1; }
 
 .record-table td {
   padding: 0.25rem 0.35rem;
   border-bottom: 1px solid var(--border-light);
   vertical-align: middle;
   height: 40px;
-  min-width: 145px;
 }
 
 .record-table tbody tr:hover > td {

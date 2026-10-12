@@ -1,20 +1,92 @@
+import { useMemo, useRef, useState } from 'react';
 import TableRow from './TableRow';
+
+const DEFAULT_COLUMN_WIDTH = 160;
+const MIN_COLUMN_WIDTH = 90;
+const MAX_COLUMN_WIDTH = 520;
+
+function loadColumnWidths() {
+  try {
+    return JSON.parse(localStorage.getItem('recordColumnWidths')) || {};
+  } catch {
+    return {};
+  }
+}
 
 export default function DataTable({
   columns, rows, lang, t,
   onCellChange, onDelete,
   onAddCustomField, onCustomFieldChange, onDeleteCustomField, dueWarningSettings,
 }) {
+  const [columnWidths, setColumnWidths] = useState(loadColumnWidths);
+  const resizeRef = useRef(null);
+  const tableWidth = useMemo(
+    () => columns.reduce((sum, column) => sum + (columnWidths[column.id] || DEFAULT_COLUMN_WIDTH), 100),
+    [columns, columnWidths]
+  );
+
+  function startResize(event, columnId) {
+    event.preventDefault();
+    event.stopPropagation();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    resizeRef.current = {
+      columnId,
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startWidth: columnWidths[columnId] || DEFAULT_COLUMN_WIDTH,
+    };
+  }
+
+  function resizeColumn(event) {
+    const resize = resizeRef.current;
+    if (!resize || resize.pointerId !== event.pointerId) return;
+    const nextWidth = Math.min(
+      MAX_COLUMN_WIDTH,
+      Math.max(MIN_COLUMN_WIDTH, resize.startWidth + event.clientX - resize.startX)
+    );
+    setColumnWidths((current) => ({ ...current, [resize.columnId]: nextWidth }));
+  }
+
+  function finishResize(event) {
+    const resize = resizeRef.current;
+    if (!resize || resize.pointerId !== event.pointerId) return;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    resizeRef.current = null;
+    setColumnWidths((current) => {
+      localStorage.setItem('recordColumnWidths', JSON.stringify(current));
+      return current;
+    });
+  }
+
   return (
     <>
       {/* Desktop table */}
       <div className="table-card desktop-only">
         <div className="table-scroll">
-          <table className="record-table">
+          <table className="record-table" style={{ width: `${tableWidth}px`, minWidth: `${tableWidth}px` }}>
+            <colgroup>
+              {columns.map((column) => (
+                <col key={column.id} style={{ width: `${columnWidths[column.id] || DEFAULT_COLUMN_WIDTH}px` }} />
+              ))}
+              <col style={{ width: '100px' }} />
+            </colgroup>
             <thead>
               <tr>
                 {columns.map((col) => (
-                  <th key={col.id}>{col.name[lang] || col.name.en || col.name.zh}</th>
+                  <th key={col.id}>
+                    <span>{col.name[lang] || col.name.en || col.name.zh}</span>
+                    <button
+                      type="button"
+                      className="column-resize-handle"
+                      aria-label={`${t.resizeColumn} ${col.name[lang] || col.name.en || col.name.zh}`}
+                      onPointerDown={(event) => startResize(event, col.id)}
+                      onPointerMove={resizeColumn}
+                      onPointerUp={finishResize}
+                      onPointerCancel={finishResize}
+                    />
+                  </th>
                 ))}
                 <th className="col-actions">{t.colActions}</th>
               </tr>
