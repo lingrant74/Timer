@@ -21,7 +21,8 @@ export default function TableRow({
   }, [mode, row.dueDate]);
 
   if (mode === 'card') {
-    const dueStatus = getDueStatus(row.dueDate, dueWarningSettings);
+    const isPaid = row.paid === true || row.paid === 'true';
+    const dueStatus = isPaid ? '' : getDueStatus(row.dueDate, dueWarningSettings);
     const agentColumns = columns.filter((col) => AGENT_FIELD_IDS.includes(col.id));
     const reminderColumns = columns.filter((col) => col.id === 'reminder');
     const otherColumns = columns.filter(
@@ -42,6 +43,7 @@ export default function TableRow({
           t={t}
           placeholder={placeholder}
           dueWarningSettings={dueWarningSettings}
+          isPaid={isPaid}
         />
       </div>
     );
@@ -52,11 +54,14 @@ export default function TableRow({
       : t.noDueDate;
 
     return (
-      <div className={`record-card due-card-${dueStatus}`}>
+      <div className={`record-card ${isPaid ? 'record-card-paid' : `due-card-${dueStatus}`}`}>
         <div className="record-card-header">
           <div className="record-card-summary">
             <strong>{title}</strong>
-            <span>{row.amount ? `${lang === 'zh' ? '¥' : '$'}${row.amount} · ` : ''}{dueLabel}</span>
+            <span className="record-card-meta">
+              {row.amount ? `${lang === 'zh' ? '¥' : '$'}${row.amount} · ` : ''}{dueLabel}
+              <em className={`paid-status ${isPaid ? 'is-paid' : ''}`}>{isPaid ? t.paid : t.unpaid}</em>
+            </span>
           </div>
           <button
             type="button"
@@ -125,6 +130,7 @@ export default function TableRow({
               t={t}
               placeholder={placeholder}
               dueWarningSettings={dueWarningSettings}
+              isPaid={row.paid === true || row.paid === 'true'}
             />
           </td>
         ))}

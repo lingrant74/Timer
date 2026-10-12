@@ -83,13 +83,26 @@ if (colCount.cnt === 0) {
     ['handlerSignature', 'Handler Signature', '经手签名', 'text', 17],
     ['remarks', 'Remarks', '备注', 'textarea', 18],
     ['amount', 'Amount', '金额', 'number', 19],
-    ['dueDate', 'Due Date', '到期日', 'date', 20],
-    ['reminder', 'Reminder', '提醒', 'reminder', 21],
+    ['paid', 'Paid', '已付款', 'checkbox', 20],
+    ['dueDate', 'Due Date', '到期日', 'date', 21],
+    ['reminder', 'Reminder', '提醒', 'reminder', 22],
   ];
   const insertMany = db.transaction((rows) => {
     for (const row of rows) insert.run(...row);
   });
   insertMany(defaults);
+}
+
+const paidColumn = db.prepare("SELECT id FROM record_columns WHERE id = 'paid'").get();
+if (!paidColumn) {
+  const addPaid = db.transaction(() => {
+    db.prepare('UPDATE record_columns SET sort_order = sort_order + 1 WHERE sort_order >= 20').run();
+    db.prepare(`
+      INSERT INTO record_columns (id, name_en, name_zh, type, sort_order)
+      VALUES ('paid', 'Paid', '已付款', 'checkbox', 20)
+    `).run();
+  });
+  addPaid();
 }
 
 // Add the default Remarks column to existing installations without changing

@@ -280,6 +280,8 @@ async function checkRecordReminders() {
   `).all();
 
   for (const record of records) {
+    const data = JSON.parse(record.data);
+    if (data.paid === true || data.paid === 'true') continue;
     const dueMs = dueDateToMs(record.due_date);
     if (Number.isNaN(dueMs)) continue;
     const minutes = REMINDER_MINUTES[record.reminder];
@@ -288,7 +290,6 @@ async function checkRecordReminders() {
     const alertAt = dueMs - minutes * 60 * 1000;
     if (now >= alertAt) {
       db.prepare('UPDATE records SET notified = 1 WHERE id = ?').run(record.id);
-      const data = JSON.parse(record.data);
       const label = data.name || data.address || 'Record';
       await sendPush(record, {
         title: 'Reminder',

@@ -57,6 +57,8 @@ const strings = {
     noDueDate: 'No due date',
     editRecord: 'Edit',
     collapseRecord: 'Done',
+    paid: 'Paid',
+    unpaid: 'Unpaid',
 
     // Timers page
     appTitle: 'Timers',
@@ -161,6 +163,8 @@ const strings = {
     noDueDate: '无到期日',
     editRecord: '编辑',
     collapseRecord: '完成',
+    paid: '已付款',
+    unpaid: '未付款',
 
     // Timers page
     appTitle: '计时器',

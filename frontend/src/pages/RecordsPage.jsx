@@ -26,6 +26,7 @@ const DEFAULT_COLUMNS = [
   { id: 'handlerSignature', name: { en: 'Handler Signature', zh: '经手签名' }, type: 'text' },
   { id: 'remarks', name: { en: 'Remarks', zh: '备注' }, type: 'textarea' },
   { id: 'amount', name: { en: 'Amount', zh: '金额' }, type: 'number' },
+  { id: 'paid', name: { en: 'Paid', zh: '已付款' }, type: 'checkbox' },
   { id: 'dueDate', name: { en: 'Due Date', zh: '到期日' }, type: 'date' },
   { id: 'reminder', name: { en: 'Reminder', zh: '提醒' }, type: 'reminder' },
 ];
@@ -125,7 +126,13 @@ export default function RecordsPage({ t, lang, subscriptionId, notificationsEnab
   const handleCellChange = useCallback((rowId, key, value) => {
     setSaveState('dirty');
     setRows((prev) => {
-      const updated = prev.map((row) => (row.id === rowId ? { ...row, [key]: value } : row));
+      const updated = prev.map((row) => {
+        if (row.id !== rowId) return row;
+        if (key === 'paid' && value === true) {
+          return { ...row, paid: true, reminder: '' };
+        }
+        return { ...row, [key]: value };
+      });
       const row = updated.find((r) => r.id === rowId);
       if (row) debouncedSave(rowId, row);
       return updated;

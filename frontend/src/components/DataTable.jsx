@@ -11,6 +11,7 @@ function defaultWidthFor(column) {
   if (column.type === 'textarea') return 230;
   if (column.type === 'reminder') return 190;
   if (column.type === 'number') return 150;
+  if (column.type === 'checkbox') return 110;
   return DEFAULT_COLUMN_WIDTH;
 }
 

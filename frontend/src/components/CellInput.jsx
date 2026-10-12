@@ -64,7 +64,7 @@ function getCountdownText(dateStr, t) {
   return t.countdownMins(mins);
 }
 
-export default function CellInput({ type, value, onChange, lang, t, placeholder, dueWarningSettings }) {
+export default function CellInput({ type, value, onChange, lang, t, placeholder, dueWarningSettings, isPaid = false }) {
   const [showCountdown, setShowCountdown] = useState(false);
   const [, setClockTick] = useState(0);
 
@@ -114,7 +114,7 @@ export default function CellInput({ type, value, onChange, lang, t, placeholder,
 
   if (type === 'date') {
     const countdown = value ? getCountdownText(value, t) : null;
-    const status = getDueStatus(value, dueWarningSettings);
+    const status = isPaid ? '' : getDueStatus(value, dueWarningSettings);
     const { date: dateValue, time: timeValue } = getDateTimeInputValues(value);
 
     const handleDateChange = (date) => {

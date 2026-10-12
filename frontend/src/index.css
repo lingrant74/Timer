@@ -616,6 +616,7 @@ body {
 .record-card.due-card-urgent { background: #fff1f2; border-left-color: #fda4af; }
 .record-card.due-card-critical { background: #ffe4e6; border-left-color: #fb7185; }
 .record-card.due-card-overdue { background: #fecdd3; border-left-color: #ef4444; }
+.record-card.record-card-paid { background: #f0fdf4; border-left-color: #22c55e; }
 .record-card-header {
   min-height: 50px;
   display: flex;
@@ -626,6 +627,9 @@ body {
 .record-card-summary { min-width: 0; display: flex; flex-direction: column; gap: 0.12rem; }
 .record-card-summary strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.95rem; }
 .record-card-summary span { color: var(--text-secondary); font-size: 0.75rem; }
+.record-card-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 0.35rem; }
+.paid-status { padding: 0.1rem 0.4rem; border-radius: 999px; background: #fef2f2; color: #b91c1c; font-size: 0.65rem; font-style: normal; font-weight: 700; }
+.paid-status.is-paid { background: #dcfce7; color: #166534; }
 .record-expand-btn {
   min-width: 78px;
   min-height: 42px;
@@ -682,6 +686,8 @@ body {
   .record-card-body .cell-input,
   .record-card-body .cell-select { min-height: 46px; font-size: 16px; }
   .record-card-body .cell-textarea { min-height: 96px; }
+  .record-card-body .checkbox-cell { min-height: 48px; justify-content: flex-start; }
+  .record-card-body .checkbox-cell input[type="checkbox"] { width: 26px; height: 26px; }
   .card-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
   .card-actions .btn,
   .card-actions .btn-row-action { min-height: 44px; }
