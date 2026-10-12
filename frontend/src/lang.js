@@ -1,5 +1,10 @@
 const strings = {
   en: {
+    accessTitle: 'Welcome',
+    accessDescription: 'Enter the access code to use this app on this device.',
+    accessCodeLabel: 'Access code',
+    accessIncorrect: 'Incorrect code. Please try again.',
+    accessContinue: 'Continue',
     // Tabs
     tabRecords: 'Records',
     tabTimers: 'Timers',
@@ -106,6 +111,11 @@ const strings = {
   },
 
   zh: {
+    accessTitle: '欢迎',
+    accessDescription: '请输入访问密码，以便在此设备上使用应用。',
+    accessCodeLabel: '访问密码',
+    accessIncorrect: '密码不正确，请重试。',
+    accessContinue: '继续',
     // Tabs
     tabRecords: '明细',
     tabTimers: '计时器',

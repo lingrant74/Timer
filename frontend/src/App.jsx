@@ -2,6 +2,7 @@ import { useState } from 'react';
 import RecordsPage from './pages/RecordsPage';
 import TimersPage from './pages/TimersPage';
 import SettingsPage from './pages/SettingsPage';
+import AccessGate from './components/AccessGate';
 import { usePushNotifications } from './usePushNotifications';
 import { loadDueWarningSettings } from './dueWarningSettings';
 import strings from './lang';
@@ -13,6 +14,9 @@ export default function App() {
     return localStorage.getItem('activeTab') || 'records';
   });
   const [lang, setLang] = useState(() => localStorage.getItem('lang') || 'en');
+  const [accessGranted, setAccessGranted] = useState(
+    () => localStorage.getItem('appAccessGranted') === 'true'
+  );
   const [dueWarningSettings, setDueWarningSettings] = useState(loadDueWarningSettings);
 
   const t = strings[lang];
@@ -22,6 +26,10 @@ export default function App() {
     enable: enableNotifications,
     error: pushError,
   } = usePushNotifications();
+
+  if (!accessGranted) {
+    return <AccessGate t={t} onUnlock={() => setAccessGranted(true)} />;
+  }
 
   function toggleLang() {
     const next = lang === 'en' ? 'zh' : 'en';
