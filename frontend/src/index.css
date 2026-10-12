@@ -349,6 +349,7 @@ body {
   border-bottom: 1px solid var(--border-light);
   vertical-align: middle;
   height: 40px;
+  overflow: hidden;
 }
 
 .record-table tbody tr:hover > td {
@@ -363,8 +364,8 @@ body {
 .record-table tbody tr:last-child td { border-bottom: none; }
 
 .col-actions {
-  width: 100px;
-  min-width: 100px !important;
+  width: 140px;
+  min-width: 140px !important;
   text-align: center;
   white-space: nowrap;
 }
@@ -455,7 +456,7 @@ body {
 .btn-row-action.danger:hover { background: var(--danger-light); border-color: var(--danger); }
 
 .cell-textarea {
-  min-width: 180px;
+  min-width: 0;
   min-height: 72px;
   resize: vertical;
   line-height: 1.4;
@@ -516,7 +517,7 @@ body {
 }
 .date-time-inputs {
   display: grid;
-  grid-template-columns: minmax(125px, 1fr) minmax(92px, 0.65fr);
+  grid-template-columns: minmax(0, 1fr) minmax(90px, 0.65fr);
   gap: 0.25rem;
 }
 .date-time-inputs .cell-input {

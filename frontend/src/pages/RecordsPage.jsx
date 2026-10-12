@@ -228,15 +228,11 @@ export default function RecordsPage({ t, lang, subscriptionId, notificationsEnab
     });
   });
 
-  const numberCols = columns.filter((col) => col.type === 'number');
-  const totalAmount = numberCols.length > 0
+  const hasAmountColumn = columns.some((col) => col.id === 'amount');
+  const totalAmount = hasAmountColumn
     ? rows.reduce((sum, row) => {
-        let rowSum = 0;
-        numberCols.forEach((col) => {
-          const n = parseFloat(row[col.id]);
-          if (!isNaN(n)) rowSum += n;
-        });
-        return sum + rowSum;
+        const amount = parseFloat(row.amount);
+        return sum + (Number.isNaN(amount) ? 0 : amount);
       }, 0)
     : null;
 
@@ -254,7 +250,7 @@ export default function RecordsPage({ t, lang, subscriptionId, notificationsEnab
           </span>
           {formattedTotal !== null && (
             <span className="summary-card">
-              {lang === 'zh' ? '合计' : 'Total'} <span className="value">{lang === 'zh' ? '¥' : '$'}{formattedTotal}</span>
+              {t.amountTotal} <span className="value">{lang === 'zh' ? '¥' : '$'}{formattedTotal}</span>
             </span>
           )}
         </div>

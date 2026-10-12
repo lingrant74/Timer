@@ -5,6 +5,15 @@ const DEFAULT_COLUMN_WIDTH = 160;
 const MIN_COLUMN_WIDTH = 90;
 const MAX_COLUMN_WIDTH = 520;
 
+function defaultWidthFor(column) {
+  if (!column) return DEFAULT_COLUMN_WIDTH;
+  if (column.type === 'date') return 300;
+  if (column.type === 'textarea') return 230;
+  if (column.type === 'reminder') return 190;
+  if (column.type === 'number') return 150;
+  return DEFAULT_COLUMN_WIDTH;
+}
+
 function loadColumnWidths() {
   try {
     return JSON.parse(localStorage.getItem('recordColumnWidths')) || {};
@@ -21,7 +30,7 @@ export default function DataTable({
   const [columnWidths, setColumnWidths] = useState(loadColumnWidths);
   const resizeRef = useRef(null);
   const tableWidth = useMemo(
-    () => columns.reduce((sum, column) => sum + (columnWidths[column.id] || DEFAULT_COLUMN_WIDTH), 100),
+    () => columns.reduce((sum, column) => sum + (columnWidths[column.id] || defaultWidthFor(column)), 140),
     [columns, columnWidths]
   );
 
@@ -33,7 +42,7 @@ export default function DataTable({
       columnId,
       pointerId: event.pointerId,
       startX: event.clientX,
-      startWidth: columnWidths[columnId] || DEFAULT_COLUMN_WIDTH,
+      startWidth: columnWidths[columnId] || defaultWidthFor(columns.find((column) => column.id === columnId)),
     };
   }
 
@@ -68,9 +77,9 @@ export default function DataTable({
           <table className="record-table" style={{ width: `${tableWidth}px`, minWidth: `${tableWidth}px` }}>
             <colgroup>
               {columns.map((column) => (
-                <col key={column.id} style={{ width: `${columnWidths[column.id] || DEFAULT_COLUMN_WIDTH}px` }} />
+                <col key={column.id} style={{ width: `${columnWidths[column.id] || defaultWidthFor(column)}px` }} />
               ))}
-              <col style={{ width: '100px' }} />
+              <col style={{ width: '140px' }} />
             </colgroup>
             <thead>
               <tr>

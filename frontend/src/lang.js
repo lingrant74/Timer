@@ -20,6 +20,7 @@ const strings = {
 
     // Records page
     recordsTitle: 'Details Record',
+    amountTotal: 'Amount Total',
     addRow: '+ Add Row',
     save: 'Save',
     saving: 'Saving…',
@@ -123,6 +124,7 @@ const strings = {
 
     // Records page
     recordsTitle: '明细记录',
+    amountTotal: '金额合计',
     addRow: '+ 添加行',
     save: '保存',
     saving: '保存中…',
