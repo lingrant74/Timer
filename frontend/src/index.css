@@ -406,6 +406,19 @@ body {
 .btn-row-action.danger { color: var(--danger); }
 .btn-row-action.danger:hover { background: var(--danger-light); border-color: var(--danger); }
 
+.cell-textarea {
+  min-width: 180px;
+  min-height: 72px;
+  resize: vertical;
+  line-height: 1.4;
+  white-space: pre-wrap;
+}
+
+.record-card .cell-textarea {
+  width: 100%;
+  min-width: 0;
+}
+
 /* ── Custom Fields (expandable) ── */
 .custom-fields-row td {
   padding: 0 0.5rem 0.5rem;

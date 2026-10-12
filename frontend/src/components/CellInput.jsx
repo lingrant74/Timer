@@ -100,6 +100,18 @@ export default function CellInput({ type, value, onChange, lang, t, placeholder,
     );
   }
 
+  if (type === 'textarea') {
+    return (
+      <textarea
+        className="cell-input cell-textarea"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        rows="3"
+      />
+    );
+  }
+
   if (type === 'date') {
     const countdown = value ? getCountdownText(value, t) : null;
     const status = getDueStatus(value, dueWarningSettings);

@@ -24,6 +24,7 @@ const DEFAULT_COLUMNS = [
   { id: 'mainCustom5', name: { en: 'Custom 5', zh: '自定义 5' }, type: 'text' },
   { id: 'personInCharge', name: { en: 'Person in Charge', zh: '经办人' }, type: 'text' },
   { id: 'handlerSignature', name: { en: 'Handler Signature', zh: '经手签名' }, type: 'text' },
+  { id: 'remarks', name: { en: 'Remarks', zh: '备注' }, type: 'textarea' },
   { id: 'amount', name: { en: 'Amount', zh: '金额' }, type: 'number' },
   { id: 'dueDate', name: { en: 'Due Date', zh: '到期日' }, type: 'date' },
   { id: 'reminder', name: { en: 'Reminder', zh: '提醒' }, type: 'reminder' },

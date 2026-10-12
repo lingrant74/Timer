@@ -1,10 +1,11 @@
 import { useState } from 'react';
 
-const COLUMN_TYPES = ['text', 'tel', 'number', 'date', 'dropdown', 'checkbox', 'reminder'];
+const COLUMN_TYPES = ['text', 'textarea', 'tel', 'number', 'date', 'dropdown', 'checkbox', 'reminder'];
 
 function typeLabel(type, lang) {
   const labels = {
     text: { en: 'Text', zh: '文本' },
+    textarea: { en: 'Long text', zh: '长文本' },
     tel: { en: 'Phone', zh: '电话' },
     number: { en: 'Number', zh: '数字' },
     date: { en: 'Date', zh: '日期' },

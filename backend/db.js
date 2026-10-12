@@ -78,14 +78,29 @@ if (colCount.cnt === 0) {
     ['mainCustom5', 'Custom 5', '自定义 5', 'text', 15],
     ['personInCharge', 'Person in Charge', '经办人', 'text', 16],
     ['handlerSignature', 'Handler Signature', '经手签名', 'text', 17],
-    ['amount', 'Amount', '金额', 'number', 18],
-    ['dueDate', 'Due Date', '到期日', 'date', 19],
-    ['reminder', 'Reminder', '提醒', 'reminder', 20],
+    ['remarks', 'Remarks', '备注', 'textarea', 18],
+    ['amount', 'Amount', '金额', 'number', 19],
+    ['dueDate', 'Due Date', '到期日', 'date', 20],
+    ['reminder', 'Reminder', '提醒', 'reminder', 21],
   ];
   const insertMany = db.transaction((rows) => {
     for (const row of rows) insert.run(...row);
   });
   insertMany(defaults);
+}
+
+// Add the default Remarks column to existing installations without changing
+// any saved record data or the user's other column customizations.
+const remarksColumn = db.prepare("SELECT id FROM record_columns WHERE id = 'remarks'").get();
+if (!remarksColumn) {
+  const addRemarks = db.transaction(() => {
+    db.prepare('UPDATE record_columns SET sort_order = sort_order + 1 WHERE sort_order >= 18').run();
+    db.prepare(`
+      INSERT INTO record_columns (id, name_en, name_zh, type, sort_order)
+      VALUES ('remarks', 'Remarks', '备注', 'textarea', 18)
+    `).run();
+  });
+  addRemarks();
 }
 
 module.exports = db;
