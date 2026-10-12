@@ -6,6 +6,7 @@ import ManageColumnsModal from '../components/ManageColumnsModal';
 const POLL_INTERVAL = 300000; // 5 minutes
 
 const DEFAULT_COLUMNS = [
+  { id: 'paid', name: { en: 'Paid', zh: '已付款' }, type: 'checkbox' },
   { id: 'address', name: { en: 'Address', zh: '地址' }, type: 'text' },
   { id: 'idNumber', name: { en: 'ID', zh: '编号' }, type: 'text' },
   { id: 'topCustom1', name: { en: 'Top Field 1', zh: '上方自定义 1' }, type: 'text' },
@@ -26,7 +27,6 @@ const DEFAULT_COLUMNS = [
   { id: 'handlerSignature', name: { en: 'Handler Signature', zh: '经手签名' }, type: 'text' },
   { id: 'remarks', name: { en: 'Remarks', zh: '备注' }, type: 'textarea' },
   { id: 'amount', name: { en: 'Amount', zh: '金额' }, type: 'number' },
-  { id: 'paid', name: { en: 'Paid', zh: '已付款' }, type: 'checkbox' },
   { id: 'dueDate', name: { en: 'Due Date', zh: '到期日' }, type: 'date' },
   { id: 'reminder', name: { en: 'Reminder', zh: '提醒' }, type: 'reminder' },
 ];
