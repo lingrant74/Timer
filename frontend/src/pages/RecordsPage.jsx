@@ -35,6 +35,7 @@ export default function RecordsPage({ t, lang, subscriptionId, notificationsEnab
   const [columns, setColumns] = useState(DEFAULT_COLUMNS);
   const [rows, setRows] = useState([]);
   const [search, setSearch] = useState('');
+  const [sortBy, setSortBy] = useState(() => localStorage.getItem('recordsSort') || 'newest');
   const [showManage, setShowManage] = useState(false);
   const [error, setError] = useState(null);
   const [saveState, setSaveState] = useState('idle');
@@ -85,12 +86,13 @@ export default function RecordsPage({ t, lang, subscriptionId, notificationsEnab
       dueDate: record.dueDate || '',
       customFields: record.customFields || [],
       _subscriptionId: record.subscriptionId,
+      _createdAt: Number(record.createdAt) || 0,
     };
   }
 
   // Convert flat row to API shape for saving
   function rowToPayload(row) {
-    const { id, customFields, reminder, dueDate, _subscriptionId, _isNew, ...data } = row;
+    const { id, customFields, reminder, dueDate, _subscriptionId, _createdAt, _isNew, ...data } = row;
     return { data, customFields: customFields || [], reminder: reminder || '', dueDate: dueDate || '' };
   }
 
@@ -235,6 +237,30 @@ export default function RecordsPage({ t, lang, subscriptionId, notificationsEnab
     });
   });
 
+  function compareOptional(a, b, direction = 1) {
+    const aMissing = a === null || a === undefined || a === '' || Number.isNaN(a);
+    const bMissing = b === null || b === undefined || b === '' || Number.isNaN(b);
+    if (aMissing && bMissing) return 0;
+    if (aMissing) return 1;
+    if (bMissing) return -1;
+    return (a < b ? -1 : a > b ? 1 : 0) * direction;
+  }
+
+  const sortedRows = [...filteredRows].sort((a, b) => {
+    if (sortBy === 'oldest') return compareOptional(a._createdAt, b._createdAt, 1);
+    if (sortBy === 'amount-high') return compareOptional(Number.parseFloat(a.amount), Number.parseFloat(b.amount), -1);
+    if (sortBy === 'amount-low') return compareOptional(Number.parseFloat(a.amount), Number.parseFloat(b.amount), 1);
+    if (sortBy === 'due-latest') return compareOptional(a.dueDate, b.dueDate, -1);
+    if (sortBy === 'due-earliest') return compareOptional(a.dueDate, b.dueDate, 1);
+    return compareOptional(a._createdAt, b._createdAt, -1);
+  });
+
+  function handleSortChange(event) {
+    const next = event.target.value;
+    setSortBy(next);
+    localStorage.setItem('recordsSort', next);
+  }
+
   const hasAmountColumn = columns.some((col) => col.id === 'amount');
   const totalAmount = hasAmountColumn
     ? rows.reduce((sum, row) => {
@@ -291,6 +317,17 @@ export default function RecordsPage({ t, lang, subscriptionId, notificationsEnab
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
+        <label className="sort-wrapper">
+          <span>{t.sortBy}</span>
+          <select className="sort-select" value={sortBy} onChange={handleSortChange}>
+            <option value="newest">{t.sortNewest}</option>
+            <option value="oldest">{t.sortOldest}</option>
+            <option value="amount-high">{t.sortAmountHigh}</option>
+            <option value="amount-low">{t.sortAmountLow}</option>
+            <option value="due-earliest">{t.sortDueEarliest}</option>
+            <option value="due-latest">{t.sortDueLatest}</option>
+          </select>
+        </label>
         <div className="toolbar-buttons">
           <button className="btn btn-primary" onClick={handleAddRow}>{t.addRow}</button>
           <button
@@ -319,7 +356,7 @@ export default function RecordsPage({ t, lang, subscriptionId, notificationsEnab
       ) : (
         <DataTable
           columns={columns}
-          rows={filteredRows}
+          rows={sortedRows}
           lang={lang}
           t={t}
           onCellChange={handleCellChange}
