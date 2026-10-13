@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getDueStatus } from '../dueWarningSettings';
+import { createRecordMedia, deleteRecordMedia, recordMediaUrl } from '../api';
 
 const REMINDER_OPTIONS = {
   en: [
@@ -64,9 +65,20 @@ function getCountdownText(dateStr, t) {
   return t.countdownMins(mins);
 }
 
+function readFile(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('read failed'));
+    reader.onload = () => resolve(String(reader.result).split(',')[1]);
+    reader.readAsDataURL(file);
+  });
+}
+
 export default function CellInput({ type, value, onChange, lang, t, placeholder, dueWarningSettings, isPaid = false }) {
   const [showCountdown, setShowCountdown] = useState(false);
   const [, setClockTick] = useState(0);
+  const [mediaBusy, setMediaBusy] = useState(false);
+  const [mediaError, setMediaError] = useState('');
 
   useEffect(() => {
     if (type !== 'date') return undefined;
@@ -200,6 +212,59 @@ export default function CellInput({ type, value, onChange, lang, t, placeholder,
             <option key={option.value || 'none'} value={option.value}>{option.label}</option>
           ))}
         </select>
+      </div>
+    );
+  }
+
+
+  if (type === 'image' || type === 'video') {
+    async function handleMedia(event) {
+      const file = event.target.files?.[0];
+      event.target.value = '';
+      if (!file) return;
+      if (file.size > 15 * 1024 * 1024) {
+        setMediaError(t.mediaTooLarge);
+        return;
+      }
+      setMediaBusy(true);
+      setMediaError('');
+      try {
+        const data = await readFile(file);
+        const saved = await createRecordMedia({ name: file.name, mimeType: file.type, data });
+        if (value?.id) deleteRecordMedia(value.id).catch(() => {});
+        onChange(saved);
+      } catch {
+        setMediaError(t.mediaUploadError);
+      } finally {
+        setMediaBusy(false);
+      }
+    }
+
+    async function removeMedia() {
+      if (value?.id) await deleteRecordMedia(value.id).catch(() => {});
+      onChange('');
+    }
+
+    return (
+      <div className="media-cell">
+        {value?.id ? (
+          <div className="media-preview">
+            {type === 'image' ? (
+              <a href={recordMediaUrl(value.id)} target="_blank" rel="noreferrer">
+                <img src={recordMediaUrl(value.id)} alt={value.name || t.mediaImage} />
+              </a>
+            ) : (
+              <video src={recordMediaUrl(value.id)} controls preload="metadata" />
+            )}
+            <button type="button" className="media-remove" onClick={removeMedia} aria-label={t.deleteBtn}>×</button>
+          </div>
+        ) : (
+          <label className="media-upload">
+            <input type="file" accept={type === 'image' ? 'image/*' : 'video/*'} onChange={handleMedia} disabled={mediaBusy} />
+            <span>{mediaBusy ? t.mediaUploading : type === 'image' ? t.addImage : t.addVideo}</span>
+          </label>
+        )}
+        {mediaError && <small className="media-error">{mediaError}</small>}
       </div>
     );
   }

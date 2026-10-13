@@ -15,6 +15,7 @@ export default function AddTimerForm({ onAdd, t }) {
   const [minutes, setMinutes] = useState('');
   const [seconds, setSeconds] = useState('');
   const [selectedPreset, setSelectedPreset] = useState('custom');
+  const [color, setColor] = useState('#3b82f6');
 
   // Validation error messages shown inline under the fields
   const [nameError, setNameError]         = useState('');
@@ -52,7 +53,7 @@ export default function AddTimerForm({ onAdd, t }) {
     if (!valid) return;
 
     // Success — reset form, flash confirmation
-    onAdd({ name: name.trim(), durationSeconds: total });
+    onAdd({ name: name.trim(), durationSeconds: total, color });
     setName('');
     setHours('');
     setMinutes('');
@@ -159,6 +160,26 @@ export default function AddTimerForm({ onAdd, t }) {
               {durationError && <p className="field-error">{durationError}</p>}
             </div>
           )}
+
+          <div className="field-group">
+            <span className="field-label">{t.timerColor}</span>
+            <div className="timer-color-row">
+              {['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'].map((choice) => (
+                <button
+                  key={choice}
+                  type="button"
+                  className={`timer-color-swatch ${color === choice ? 'active' : ''}`}
+                  style={{ backgroundColor: choice }}
+                  onClick={() => setColor(choice)}
+                  aria-label={t.chooseColor}
+                />
+              ))}
+              <label className="timer-custom-color">
+                <input type="color" value={color} onChange={(event) => setColor(event.target.value)} />
+                <span>{t.customColor}</span>
+              </label>
+            </div>
+          </div>
 
           {/* Submit */}
           <button type="submit" className={`btn btn-primary form-submit ${added ? 'is-added' : ''}`}>

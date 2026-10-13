@@ -9,7 +9,7 @@ const app  = express();
 const PORT = process.env.PORT || 3001;
 
 app.use(cors({ origin: process.env.FRONTEND_URL || '*' }));
-app.use(express.json({ limit: '8mb' }));
+app.use(express.json({ limit: '24mb' }));
 
 // ── VAPID setup ──────────────────────────────────────────────────────────
 if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
@@ -57,15 +57,15 @@ app.get('/api/timers', (req, res) => {
 });
 
 app.post('/api/timers', (req, res) => {
-  const { name, durationSeconds, subscriptionId } = req.body;
+  const { name, durationSeconds, subscriptionId, color } = req.body;
   if (!name || !durationSeconds || Number(durationSeconds) <= 0) {
     return res.status(400).json({ error: 'name and durationSeconds are required.' });
   }
 
   const endTime = Math.floor(Date.now() / 1000) + Number(durationSeconds);
   const result = db.prepare(`
-    INSERT INTO timers (name, end_time, subscription_id) VALUES (?, ?, ?)
-  `).run(name, endTime, subscriptionId ?? null);
+    INSERT INTO timers (name, end_time, subscription_id, color) VALUES (?, ?, ?, ?)
+  `).run(name, endTime, subscriptionId ?? null, /^#[0-9a-f]{6}$/i.test(color || '') ? color : '#3b82f6');
 
   const timer = db.prepare('SELECT * FROM timers WHERE id = ?').get(result.lastInsertRowid);
   res.status(201).json(timerToView(timer));
@@ -102,6 +102,7 @@ function timerToView(t) {
     completed: !!t.completed,
     subscriptionId: t.subscription_id,
     createdAt: t.created_at,
+    color: t.color || '#3b82f6',
   };
 }
 
@@ -266,6 +267,35 @@ function imageToView(image) {
     createdAt: image.created_at,
   };
 }
+
+// Media attached to individual record cells. The record stores only the media
+// id, keeping the records response fast even when it contains phone videos.
+app.post('/api/record-media', (req, res) => {
+  const { name, mimeType, data } = req.body;
+  const supported = mimeType?.startsWith('image/') || mimeType?.startsWith('video/');
+  if (!supported || typeof data !== 'string' || !data) {
+    return res.status(400).json({ error: 'A valid image or video is required.' });
+  }
+  const buffer = Buffer.from(data, 'base64');
+  if (buffer.length > 15 * 1024 * 1024) {
+    return res.status(413).json({ error: 'Media must be 15 MB or smaller.' });
+  }
+  const id = crypto.randomUUID();
+  db.prepare('INSERT INTO record_media (id, name, mime_type, data) VALUES (?, ?, ?, ?)')
+    .run(id, String(name || '').slice(0, 200), mimeType, buffer);
+  res.status(201).json({ id, name: String(name || '').slice(0, 200), mimeType });
+});
+
+app.get('/api/record-media/:id', (req, res) => {
+  const media = db.prepare('SELECT mime_type, data FROM record_media WHERE id = ?').get(req.params.id);
+  if (!media) return res.status(404).end();
+  res.type(media.mime_type).send(media.data);
+});
+
+app.delete('/api/record-media/:id', (req, res) => {
+  db.prepare('DELETE FROM record_media WHERE id = ?').run(req.params.id);
+  res.json({ success: true });
+});
 
 // ══════════════════════════════════════════════════════════════════════════
 // BACKGROUND WORKERS

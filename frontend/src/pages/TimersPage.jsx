@@ -27,9 +27,9 @@ export default function TimersPage({ t }) {
     return () => clearInterval(id);
   }, [loadTimers]);
 
-  async function handleAdd({ name, durationSeconds }) {
+  async function handleAdd({ name, durationSeconds, color }) {
     try {
-      const timer = await createTimer({ name, durationSeconds, subscriptionId });
+      const timer = await createTimer({ name, durationSeconds, subscriptionId, color });
       setTimers((prev) => [timer, ...prev]);
     } catch {
       setFetchError(t.errorCreate);

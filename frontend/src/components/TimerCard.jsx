@@ -41,7 +41,10 @@ export default function TimerCard({ timer, onDelete, onModify, t }) {
   const urgent = !done && remaining <= 30;
 
   return (
-    <div className={`timer-row ${done ? 'is-done' : ''}`}>
+    <div
+      className={`timer-row ${done ? 'is-done' : ''}`}
+      style={{ '--timer-color': timer.color || '#3b82f6' }}
+    >
       <span className="timer-name">{timer.name}</span>
       {!done && (
         <div className="timer-modifiers">

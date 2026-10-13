@@ -554,6 +554,15 @@ body {
 }
 .cell-input::placeholder { color: var(--muted); font-size: 0.75rem; }
 
+.media-cell { display: flex; flex-direction: column; gap: 0.25rem; }
+.media-upload { min-height: 44px; display: grid; place-items: center; padding: 0.4rem; border: 1px dashed #93c5fd; border-radius: 7px; background: var(--accent-light); color: var(--accent); font-size: 0.75rem; font-weight: 600; cursor: pointer; }
+.media-upload input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.media-preview { position: relative; min-height: 70px; border-radius: 7px; overflow: hidden; background: #0f172a; }
+.media-preview a { display: block; height: 100%; }
+.media-preview img, .media-preview video { display: block; width: 100%; height: 110px; object-fit: contain; }
+.media-remove { position: absolute; top: 5px; right: 5px; width: 28px; height: 28px; border: 0; border-radius: 50%; background: rgba(15,23,42,0.78); color: white; font-size: 1rem; cursor: pointer; }
+.media-error { color: var(--danger); font-size: 0.65rem; }
+
 /* Hide number spinners */
 .cell-input[type="number"]::-webkit-inner-spin-button,
 .cell-input[type="number"]::-webkit-outer-spin-button {
@@ -1018,6 +1027,8 @@ body {
   padding: 0.75rem 0.5rem;
   border-bottom: 1px solid var(--border-light);
   gap: 0.5rem;
+  border-left: 5px solid var(--timer-color, var(--accent));
+  background: color-mix(in srgb, var(--timer-color, var(--accent)) 7%, white);
 }
 .timer-row:first-child { border-top: 1px solid var(--border-light); }
 .timer-row.is-done { opacity: 0.4; }
@@ -1051,7 +1062,7 @@ body {
   font-size: 0.9rem;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  color: var(--accent);
+  color: var(--timer-color, var(--accent));
   min-width: 4.5rem;
   text-align: right;
 }
@@ -1092,6 +1103,12 @@ body {
   gap: 0.4rem;
   margin-top: 0.2rem;
 }
+
+.timer-color-row { display: flex; align-items: center; flex-wrap: wrap; gap: 0.55rem; padding: 0.3rem 0; }
+.timer-color-swatch { width: 34px; height: 34px; padding: 0; border: 3px solid white; border-radius: 50%; box-shadow: 0 0 0 1px var(--border); cursor: pointer; }
+.timer-color-swatch.active { box-shadow: 0 0 0 3px #0f172a; }
+.timer-custom-color { min-height: 36px; display: flex; align-items: center; gap: 0.35rem; padding: 0.2rem 0.55rem; border: 1px solid var(--border); border-radius: 999px; color: var(--text-secondary); font-size: 0.75rem; cursor: pointer; }
+.timer-custom-color input { width: 24px; height: 24px; padding: 0; border: 0; border-radius: 50%; background: transparent; cursor: pointer; }
 
 .preset-btn {
   min-height: 42px;

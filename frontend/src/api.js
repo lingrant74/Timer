@@ -99,3 +99,15 @@ export const createImage = (body) =>
 
 export const deleteImage = (id) =>
   request(`/images/${id}`, { method: 'DELETE' });
+
+export const createRecordMedia = (body) =>
+  request('/record-media', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+
+export const deleteRecordMedia = (id) =>
+  request(`/record-media/${id}`, { method: 'DELETE' });
+
+export const recordMediaUrl = (id) => `${BASE}/record-media/${encodeURIComponent(id)}`;

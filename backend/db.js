@@ -32,6 +32,11 @@ db.exec(`
   )
 `);
 
+const timerColumns = db.prepare('PRAGMA table_info(timers)').all();
+if (!timerColumns.some((column) => column.name === 'color')) {
+  db.exec("ALTER TABLE timers ADD COLUMN color TEXT DEFAULT '#3b82f6'");
+}
+
 // Record columns schema
 db.exec(`
   CREATE TABLE IF NOT EXISTS record_columns (
@@ -66,6 +71,16 @@ db.exec(`
     name        TEXT NOT NULL DEFAULT '',
     mime_type   TEXT NOT NULL,
     data        TEXT NOT NULL,
+    created_at  INTEGER DEFAULT (strftime('%s', 'now'))
+  )
+`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS record_media (
+    id          TEXT PRIMARY KEY,
+    name        TEXT NOT NULL DEFAULT '',
+    mime_type   TEXT NOT NULL,
+    data        BLOB NOT NULL,
     created_at  INTEGER DEFAULT (strftime('%s', 'now'))
   )
 `);
