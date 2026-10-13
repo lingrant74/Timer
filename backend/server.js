@@ -9,7 +9,7 @@ const app  = express();
 const PORT = process.env.PORT || 3001;
 
 app.use(cors({ origin: process.env.FRONTEND_URL || '*' }));
-app.use(express.json());
+app.use(express.json({ limit: '8mb' }));
 
 // ── VAPID setup ──────────────────────────────────────────────────────────
 if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
@@ -224,6 +224,46 @@ function recordToView(r) {
     notified: !!r.notified,
     subscriptionId: r.subscription_id,
     createdAt: r.created_at,
+  };
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// IMAGE LIBRARY
+// ══════════════════════════════════════════════════════════════════════════
+
+app.get('/api/images', (req, res) => {
+  const rows = db.prepare('SELECT * FROM images ORDER BY created_at DESC').all();
+  res.json(rows.map(imageToView));
+});
+
+app.post('/api/images', (req, res) => {
+  const { name, mimeType, data } = req.body;
+  if (!mimeType?.startsWith('image/') || typeof data !== 'string' || !data) {
+    return res.status(400).json({ error: 'A valid image is required.' });
+  }
+  if (Buffer.byteLength(data, 'utf8') > 7 * 1024 * 1024) {
+    return res.status(413).json({ error: 'Image is too large.' });
+  }
+
+  const id = crypto.randomUUID();
+  db.prepare('INSERT INTO images (id, name, mime_type, data) VALUES (?, ?, ?, ?)')
+    .run(id, String(name || '').slice(0, 200), mimeType, data);
+  const image = db.prepare('SELECT * FROM images WHERE id = ?').get(id);
+  res.status(201).json(imageToView(image));
+});
+
+app.delete('/api/images/:id', (req, res) => {
+  db.prepare('DELETE FROM images WHERE id = ?').run(req.params.id);
+  res.json({ success: true });
+});
+
+function imageToView(image) {
+  return {
+    id: image.id,
+    name: image.name,
+    mimeType: image.mime_type,
+    data: image.data,
+    createdAt: image.created_at,
   };
 }
 

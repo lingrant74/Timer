@@ -85,3 +85,17 @@ export const saveRecordColumns = (columns) =>
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(columns),
   });
+
+// ── Images ────────────────────────────────────────────────────────────────
+
+export const getImages = () => request('/images');
+
+export const createImage = (body) =>
+  request('/images', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+
+export const deleteImage = (id) =>
+  request(`/images/${id}`, { method: 'DELETE' });

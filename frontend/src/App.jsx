@@ -2,6 +2,7 @@ import { useState } from 'react';
 import RecordsPage from './pages/RecordsPage';
 import TimersPage from './pages/TimersPage';
 import SettingsPage from './pages/SettingsPage';
+import ImagesPage from './pages/ImagesPage';
 import AccessGate from './components/AccessGate';
 import { usePushNotifications } from './usePushNotifications';
 import { loadDueWarningSettings } from './dueWarningSettings';
@@ -10,7 +11,7 @@ import strings from './lang';
 export default function App() {
   const [tab, setTab] = useState(() => {
     const requestedTab = new URLSearchParams(window.location.search).get('tab');
-    if (requestedTab === 'records' || requestedTab === 'timers' || requestedTab === 'settings') return requestedTab;
+    if (requestedTab === 'records' || requestedTab === 'timers' || requestedTab === 'images' || requestedTab === 'settings') return requestedTab;
     return localStorage.getItem('activeTab') || 'records';
   });
   const [lang, setLang] = useState(() => localStorage.getItem('lang') || 'en');
@@ -68,6 +69,8 @@ export default function App() {
           />
         ) : tab === 'timers' ? (
           <TimersPage t={t} />
+        ) : tab === 'images' ? (
+          <ImagesPage t={t} />
         ) : (
           <SettingsPage t={t} settings={dueWarningSettings} onChange={updateDueWarningSettings} />
         )}
@@ -96,6 +99,17 @@ export default function App() {
             <polyline points="12 6 12 12 16 14"/>
           </svg>
           <span>{t.tabTimers}</span>
+        </button>
+        <button
+          className={`tab-btn ${tab === 'images' ? 'active' : ''}`}
+          onClick={() => switchTab('images')}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <path d="m21 15-5-5L5 21"/>
+          </svg>
+          <span>{t.tabImages}</span>
         </button>
         <button
           className={`tab-btn ${tab === 'settings' ? 'active' : ''}`}

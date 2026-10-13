@@ -58,6 +58,18 @@ db.exec(`
   )
 `);
 
+// Image library. Images are resized by the phone/browser before upload and
+// stored in the same database as records so they are available on every device.
+db.exec(`
+  CREATE TABLE IF NOT EXISTS images (
+    id          TEXT PRIMARY KEY,
+    name        TEXT NOT NULL DEFAULT '',
+    mime_type   TEXT NOT NULL,
+    data        TEXT NOT NULL,
+    created_at  INTEGER DEFAULT (strftime('%s', 'now'))
+  )
+`);
+
 // Seed default columns if table is empty
 const colCount = db.prepare('SELECT COUNT(*) as cnt FROM record_columns').get();
 if (colCount.cnt === 0) {
