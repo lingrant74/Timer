@@ -448,6 +448,26 @@ body {
   overflow: visible;
 }
 
+.column-sort-button {
+  max-width: calc(100% - 8px);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.15rem;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.column-sort-button:hover,
+.column-sort-button.is-active { color: var(--accent); }
+.column-sort-arrow { font-size: 0.85rem; line-height: 1; color: #94a3b8; }
+.column-sort-button.is-active .column-sort-arrow { color: var(--accent); }
+
 .column-resize-handle {
   position: absolute;
   top: 0;

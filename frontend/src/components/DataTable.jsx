@@ -27,6 +27,7 @@ export default function DataTable({
   columns, rows, lang, t,
   onCellChange, onDelete,
   onAddCustomField, onCustomFieldChange, onDeleteCustomField, dueWarningSettings,
+  sortBy, onSortColumn,
 }) {
   const [columnWidths, setColumnWidths] = useState(loadColumnWidths);
   const resizeRef = useRef(null);
@@ -86,7 +87,17 @@ export default function DataTable({
               <tr>
                 {columns.map((col) => (
                   <th key={col.id}>
-                    <span>{col.name[lang] || col.name.en || col.name.zh}</span>
+                    <button
+                      type="button"
+                      className={`column-sort-button ${sortBy?.startsWith(`column:${col.id}:`) ? 'is-active' : ''}`}
+                      onClick={() => onSortColumn(col.id)}
+                      aria-label={`${t.sortBy}: ${col.name[lang] || col.name.en || col.name.zh}`}
+                    >
+                      <span>{col.name[lang] || col.name.en || col.name.zh}</span>
+                      <span className="column-sort-arrow" aria-hidden="true">
+                        {sortBy === `column:${col.id}:asc` ? '↑' : sortBy === `column:${col.id}:desc` ? '↓' : '↕'}
+                      </span>
+                    </button>
                     <button
                       type="button"
                       className="column-resize-handle"

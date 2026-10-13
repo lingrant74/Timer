@@ -35,7 +35,16 @@ export default function RecordsPage({ t, lang, subscriptionId, notificationsEnab
   const [columns, setColumns] = useState(DEFAULT_COLUMNS);
   const [rows, setRows] = useState([]);
   const [search, setSearch] = useState('');
-  const [sortBy, setSortBy] = useState(() => localStorage.getItem('recordsSort') || 'newest');
+  const [sortBy, setSortBy] = useState(() => {
+    const saved = localStorage.getItem('recordsSort') || 'newest';
+    const previousOptions = {
+      'amount-high': 'column:amount:desc',
+      'amount-low': 'column:amount:asc',
+      'due-earliest': 'column:dueDate:asc',
+      'due-latest': 'column:dueDate:desc',
+    };
+    return previousOptions[saved] || saved;
+  });
   const [showManage, setShowManage] = useState(false);
   const [error, setError] = useState(null);
   const [saveState, setSaveState] = useState('idle');
@@ -247,6 +256,24 @@ export default function RecordsPage({ t, lang, subscriptionId, notificationsEnab
   }
 
   const sortedRows = [...filteredRows].sort((a, b) => {
+    if (sortBy.startsWith('column:')) {
+      const [, columnId, directionName] = sortBy.split(':');
+      const column = columns.find((item) => item.id === columnId);
+      const direction = directionName === 'desc' ? -1 : 1;
+      let aValue = a[columnId];
+      let bValue = b[columnId];
+      if (column?.type === 'number') {
+        aValue = Number.parseFloat(aValue);
+        bValue = Number.parseFloat(bValue);
+      } else if (column?.type === 'checkbox') {
+        aValue = aValue === true || aValue === 'true' ? 1 : 0;
+        bValue = bValue === true || bValue === 'true' ? 1 : 0;
+      } else {
+        aValue = aValue == null ? '' : String(aValue).toLocaleLowerCase(lang);
+        bValue = bValue == null ? '' : String(bValue).toLocaleLowerCase(lang);
+      }
+      return compareOptional(aValue, bValue, direction);
+    }
     if (sortBy === 'oldest') return compareOptional(a._createdAt, b._createdAt, 1);
     if (sortBy === 'amount-high') return compareOptional(Number.parseFloat(a.amount), Number.parseFloat(b.amount), -1);
     if (sortBy === 'amount-low') return compareOptional(Number.parseFloat(a.amount), Number.parseFloat(b.amount), 1);
@@ -257,6 +284,13 @@ export default function RecordsPage({ t, lang, subscriptionId, notificationsEnab
 
   function handleSortChange(event) {
     const next = event.target.value;
+    setSortBy(next);
+    localStorage.setItem('recordsSort', next);
+  }
+
+  function handleColumnSort(columnId) {
+    const prefix = `column:${columnId}:`;
+    const next = sortBy === `${prefix}asc` ? `${prefix}desc` : `${prefix}asc`;
     setSortBy(next);
     localStorage.setItem('recordsSort', next);
   }
@@ -322,10 +356,17 @@ export default function RecordsPage({ t, lang, subscriptionId, notificationsEnab
           <select className="sort-select" value={sortBy} onChange={handleSortChange}>
             <option value="newest">{t.sortNewest}</option>
             <option value="oldest">{t.sortOldest}</option>
-            <option value="amount-high">{t.sortAmountHigh}</option>
-            <option value="amount-low">{t.sortAmountLow}</option>
-            <option value="due-earliest">{t.sortDueEarliest}</option>
-            <option value="due-latest">{t.sortDueLatest}</option>
+            {columns.map((column) => {
+              const name = column.name[lang] || column.name.en || column.name.zh;
+              return [
+                <option key={`${column.id}-asc`} value={`column:${column.id}:asc`}>
+                  {t.sortColumnAsc(name, column.type)}
+                </option>,
+                <option key={`${column.id}-desc`} value={`column:${column.id}:desc`}>
+                  {t.sortColumnDesc(name, column.type)}
+                </option>,
+              ];
+            })}
           </select>
         </label>
         <div className="toolbar-buttons">
@@ -365,6 +406,8 @@ export default function RecordsPage({ t, lang, subscriptionId, notificationsEnab
           onCustomFieldChange={handleCustomFieldChange}
           onDeleteCustomField={handleDeleteCustomField}
           dueWarningSettings={dueWarningSettings}
+          sortBy={sortBy}
+          onSortColumn={handleColumnSort}
         />
       )}
 
