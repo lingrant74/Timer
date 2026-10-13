@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 
-const COLUMN_TYPES = ['text', 'image', 'video', 'textarea', 'tel', 'number', 'date', 'dropdown', 'checkbox', 'reminder'];
+const COLUMN_TYPES = ['text', 'image', 'video', 'file', 'textarea', 'tel', 'number', 'date', 'dropdown', 'checkbox', 'reminder'];
 
 function typeLabel(type, lang) {
   const labels = {
     text: { en: 'Text', zh: '文本' },
     image: { en: 'Image', zh: '图片' },
     video: { en: 'Video', zh: '视频' },
+    file: { en: 'File', zh: '文件' },
     textarea: { en: 'Long text', zh: '长文本' },
     tel: { en: 'Phone', zh: '电话' },
     number: { en: 'Number', zh: '数字' },

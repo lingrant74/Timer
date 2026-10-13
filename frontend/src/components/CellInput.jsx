@@ -217,7 +217,7 @@ export default function CellInput({ type, value, onChange, lang, t, placeholder,
   }
 
 
-  if (type === 'image' || type === 'video') {
+  if (type === 'image' || type === 'video' || type === 'file') {
     async function handleMedia(event) {
       const file = event.target.files?.[0];
       event.target.value = '';
@@ -230,7 +230,7 @@ export default function CellInput({ type, value, onChange, lang, t, placeholder,
       setMediaError('');
       try {
         const data = await readFile(file);
-        const saved = await createRecordMedia({ name: file.name, mimeType: file.type, data });
+        const saved = await createRecordMedia({ name: file.name, mimeType: file.type || 'application/octet-stream', data });
         if (value?.id) deleteRecordMedia(value.id).catch(() => {});
         onChange(saved);
       } catch {
@@ -253,15 +253,30 @@ export default function CellInput({ type, value, onChange, lang, t, placeholder,
               <a href={recordMediaUrl(value.id)} target="_blank" rel="noreferrer">
                 <img src={recordMediaUrl(value.id)} alt={value.name || t.mediaImage} />
               </a>
-            ) : (
+            ) : type === 'video' ? (
               <video src={recordMediaUrl(value.id)} controls preload="metadata" />
+            ) : (
+              <div className="file-preview">
+                <a href={recordMediaUrl(value.id)} target="_blank" rel="noreferrer" download={value.name || true}>
+                  <span className="file-icon" aria-hidden="true">↧</span>
+                  <span>{t.openFile}</span>
+                </a>
+                <input
+                  type="text"
+                  className="file-name-input"
+                  value={value.name || ''}
+                  onChange={(event) => onChange({ ...value, name: event.target.value })}
+                  placeholder={t.fileName}
+                  aria-label={t.fileName}
+                />
+              </div>
             )}
             <button type="button" className="media-remove" onClick={removeMedia} aria-label={t.deleteBtn}>×</button>
           </div>
         ) : (
           <label className="media-upload">
-            <input type="file" accept={type === 'image' ? 'image/*' : 'video/*'} onChange={handleMedia} disabled={mediaBusy} />
-            <span>{mediaBusy ? t.mediaUploading : type === 'image' ? t.addImage : t.addVideo}</span>
+            <input type="file" accept={type === 'image' ? 'image/*' : type === 'video' ? 'video/*' : undefined} onChange={handleMedia} disabled={mediaBusy} />
+            <span>{mediaBusy ? t.mediaUploading : type === 'image' ? t.addImage : type === 'video' ? t.addVideo : t.addFile}</span>
           </label>
         )}
         {mediaError && <small className="media-error">{mediaError}</small>}

@@ -272,9 +272,8 @@ function imageToView(image) {
 // id, keeping the records response fast even when it contains phone videos.
 app.post('/api/record-media', (req, res) => {
   const { name, mimeType, data } = req.body;
-  const supported = mimeType?.startsWith('image/') || mimeType?.startsWith('video/');
-  if (!supported || typeof data !== 'string' || !data) {
-    return res.status(400).json({ error: 'A valid image or video is required.' });
+  if (typeof mimeType !== 'string' || !mimeType || typeof data !== 'string' || !data) {
+    return res.status(400).json({ error: 'A valid file is required.' });
   }
   const buffer = Buffer.from(data, 'base64');
   if (buffer.length > 15 * 1024 * 1024) {
@@ -287,8 +286,10 @@ app.post('/api/record-media', (req, res) => {
 });
 
 app.get('/api/record-media/:id', (req, res) => {
-  const media = db.prepare('SELECT mime_type, data FROM record_media WHERE id = ?').get(req.params.id);
+  const media = db.prepare('SELECT name, mime_type, data FROM record_media WHERE id = ?').get(req.params.id);
   if (!media) return res.status(404).end();
+  const safeName = String(media.name || 'file').replace(/["\r\n]/g, '_');
+  res.set('Content-Disposition', `inline; filename="${safeName}"`);
   res.type(media.mime_type).send(media.data);
 });
 

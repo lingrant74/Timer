@@ -12,7 +12,7 @@ function defaultWidthFor(column) {
   if (column.type === 'reminder') return 190;
   if (column.type === 'number') return 150;
   if (column.type === 'checkbox') return 110;
-  if (column.type === 'image' || column.type === 'video') return 210;
+  if (column.type === 'image' || column.type === 'video' || column.type === 'file') return 210;
   return DEFAULT_COLUMN_WIDTH;
 }
 
