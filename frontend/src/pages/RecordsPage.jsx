@@ -256,6 +256,11 @@ export default function RecordsPage({ t, lang, subscriptionId, notificationsEnab
   }
 
   const sortedRows = [...filteredRows].sort((a, b) => {
+    // Always group unpaid records first; apply the selected sort within each group.
+    const aPaid = a.paid === true || a.paid === 'true';
+    const bPaid = b.paid === true || b.paid === 'true';
+    if (aPaid !== bPaid) return aPaid ? 1 : -1;
+
     if (sortBy.startsWith('column:')) {
       const [, columnId, directionName] = sortBy.split(':');
       const column = columns.find((item) => item.id === columnId);

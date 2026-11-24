@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import FilePreview from './FilePreview';
 import { getDueStatus } from '../dueWarningSettings';
 import { createRecordMedia, deleteRecordMedia, recordMediaUrl } from '../api';
 
@@ -78,6 +79,7 @@ export default function CellInput({ type, value, onChange, lang, t, placeholder,
   const [showCountdown, setShowCountdown] = useState(false);
   const [, setClockTick] = useState(0);
   const [mediaBusy, setMediaBusy] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const [mediaError, setMediaError] = useState('');
 
   useEffect(() => {
@@ -96,6 +98,36 @@ export default function CellInput({ type, value, onChange, lang, t, placeholder,
         step="0.01"
         placeholder={placeholder}
       />
+    );
+  }
+
+  if (type === 'url') {
+    const text = typeof value === 'string' ? value : '';
+    let href = '';
+    if (text.trim()) {
+      try {
+        const candidate = text.trim();
+        const parsed = new URL(/^[a-z][a-z0-9+.-]*:/i.test(candidate) ? candidate : `https://${candidate}`);
+        if (['https:', 'http:'].includes(parsed.protocol) && parsed.hostname.includes('.')) href = parsed.href;
+      } catch { /* Keep incomplete links editable without making them clickable. */ }
+    }
+    return (
+      <div className="url-cell">
+        <input
+          type="url"
+          inputMode="url"
+          className="cell-input"
+          value={text}
+          onChange={(event) => onChange(event.target.value)}
+          placeholder="https://example.com"
+          aria-label={lang === 'zh' ? '网址' : 'URL'}
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
+        />
+        {href && <a className="url-open" href={href} target="_blank" rel="noopener noreferrer">{lang === 'zh' ? '打开链接 ↗' : 'Open link ↗'}</a>}
+        {text.trim() && !href && <small className="media-error">{lang === 'zh' ? '请输入有效的网站网址。' : 'Enter a valid website URL.'}</small>}
+      </div>
     );
   }
 
@@ -257,10 +289,11 @@ export default function CellInput({ type, value, onChange, lang, t, placeholder,
               <video src={recordMediaUrl(value.id)} controls preload="metadata" />
             ) : (
               <div className="file-preview">
-                <a href={recordMediaUrl(value.id)} target="_blank" rel="noreferrer" download={value.name || true}>
-                  <span className="file-icon" aria-hidden="true">↧</span>
+                <button type="button" className="file-open-button" onClick={() => setPreviewOpen(true)}>
+                  <span className="file-icon" aria-hidden="true">↗</span>
                   <span>{t.openFile}</span>
-                </a>
+                </button>
+                {previewOpen && <FilePreview file={value} lang={lang} onClose={() => setPreviewOpen(false)} />}
                 <input
                   type="text"
                   className="file-name-input"

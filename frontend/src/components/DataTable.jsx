@@ -8,6 +8,7 @@ const MAX_COLUMN_WIDTH = 520;
 function defaultWidthFor(column) {
   if (!column) return DEFAULT_COLUMN_WIDTH;
   if (column.type === 'date') return 300;
+  if (column.type === 'url') return 240;
   if (column.type === 'textarea') return 230;
   if (column.type === 'reminder') return 190;
   if (column.type === 'number') return 150;
