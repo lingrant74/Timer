@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import FilePreview from './FilePreview';
 import { getDueStatus } from '../dueWarningSettings';
-import { createRecordMedia, deleteRecordMedia, recordMediaUrl } from '../api';
+import { recordMediaUrl } from '../api';
 
 const REMINDER_OPTIONS = {
   en: [
@@ -250,6 +250,7 @@ export default function CellInput({ type, value, onChange, lang, t, placeholder,
 
 
   if (type === 'image' || type === 'video' || type === 'file') {
+    const mediaUrl = value?._pendingMedia ? `data:${value.mimeType};base64,${value.data}` : value?.id ? recordMediaUrl(value.id) : '';
     async function handleMedia(event) {
       const file = event.target.files?.[0];
       event.target.value = '';
@@ -262,8 +263,7 @@ export default function CellInput({ type, value, onChange, lang, t, placeholder,
       setMediaError('');
       try {
         const data = await readFile(file);
-        const saved = await createRecordMedia({ name: file.name, mimeType: file.type || 'application/octet-stream', data });
-        if (value?.id) deleteRecordMedia(value.id).catch(() => {});
+        const saved = { name: file.name, mimeType: file.type || 'application/octet-stream', data, _pendingMedia: true };
         onChange(saved);
       } catch {
         setMediaError(t.mediaUploadError);
@@ -273,20 +273,19 @@ export default function CellInput({ type, value, onChange, lang, t, placeholder,
     }
 
     async function removeMedia() {
-      if (value?.id) await deleteRecordMedia(value.id).catch(() => {});
       onChange('');
     }
 
     return (
       <div className="media-cell">
-        {value?.id ? (
+        {value?.id || value?._pendingMedia ? (
           <div className="media-preview">
             {type === 'image' ? (
-              <a href={recordMediaUrl(value.id)} target="_blank" rel="noreferrer">
-                <img src={recordMediaUrl(value.id)} alt={value.name || t.mediaImage} />
+              <a href={mediaUrl} target="_blank" rel="noreferrer">
+                <img src={mediaUrl} alt={value.name || t.mediaImage} />
               </a>
             ) : type === 'video' ? (
-              <video src={recordMediaUrl(value.id)} controls preload="metadata" />
+              <video src={mediaUrl} controls preload="metadata" />
             ) : (
               <div className="file-preview">
                 <button type="button" className="file-open-button" onClick={() => setPreviewOpen(true)}>

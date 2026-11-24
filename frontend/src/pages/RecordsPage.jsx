@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { getRecords, createRecord, updateRecord, deleteRecord, clearRecords, getRecordColumns, saveRecordColumns, linkRecordsSubscription } from '../api';
+import { getRecords, createRecord, updateRecord, deleteRecord, getRecordColumns, saveRecordColumns, linkRecordsSubscription, createRecordMedia } from '../api';
 import DataTable from '../components/DataTable';
 import ManageColumnsModal from '../components/ManageColumnsModal';
 
@@ -48,12 +48,37 @@ export default function RecordsPage({ t, lang, subscriptionId, notificationsEnab
   const [showManage, setShowManage] = useState(false);
   const [error, setError] = useState(null);
   const [saveState, setSaveState] = useState('idle');
-  const debounceTimers = useRef({});
+  const pending = useRef(false);
+  const saving = useRef(false);
+  const dirtyIds = useRef(new Set());
+  const deletedIds = useRef(new Set());
+  const columnsDirty = useRef(false);
+  const version = useRef(0);
+
+  function markDirty(id) {
+    pending.current = true;
+    version.current += 1;
+    if (id) dirtyIds.current.add(id);
+    setSaveState('dirty');
+  }
+
+  useEffect(() => {
+    function warn(event) {
+      if (!pending.current) return;
+      event.preventDefault();
+      event.returnValue = '';
+    }
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, []);
 
   // Load data from backend
   const loadData = useCallback(async () => {
+    if (pending.current || saving.current) return;
+    const loadedVersion = version.current;
     try {
       const [cols, records] = await Promise.all([getRecordColumns(), getRecords()]);
+      if (pending.current || saving.current || version.current !== loadedVersion) return;
       if (cols.length > 0) setColumns(cols);
       setRows(records.map(recordToRow));
       setError(null);
@@ -105,37 +130,16 @@ export default function RecordsPage({ t, lang, subscriptionId, notificationsEnab
     return { data, customFields: customFields || [], reminder: reminder || '', dueDate: dueDate || '' };
   }
 
-  // Debounced save for cell edits
-  function debouncedSave(rowId, row) {
-    if (debounceTimers.current[rowId]) clearTimeout(debounceTimers.current[rowId]);
-    debounceTimers.current[rowId] = setTimeout(async () => {
-      try {
-        await updateRecord(rowId, rowToPayload(row));
-      } catch {
-        setError(t.errorCreate);
-      }
-    }, 400);
-  }
-
-  const handleAddRow = async () => {
-    const emptyData = {};
-    columns.forEach((col) => { emptyData[col.id] = ''; });
-    try {
-      const record = await createRecord({
-        data: emptyData,
-        customFields: [],
-        reminder: '',
-        dueDate: '',
-        subscriptionId: subscriptionId || null,
-      });
-      setRows((prev) => [{ ...recordToRow(record), _isNew: true }, ...prev]);
-    } catch {
-      setError(t.errorCreate);
-    }
+  const handleAddRow = () => {
+    const id = `draft-${crypto.randomUUID()}`;
+    const data = {};
+    columns.forEach((col) => { data[col.id] = ''; });
+    markDirty(id);
+    setRows((prev) => [{ ...data, id, customFields: [], reminder: '', dueDate: '', _createdAt: Date.now(), _isNew: true }, ...prev]);
   };
 
   const handleCellChange = useCallback((rowId, key, value) => {
-    setSaveState('dirty');
+    markDirty(rowId);
     setRows((prev) => {
       const updated = prev.map((row) => {
         if (row.id !== rowId) return row;
@@ -144,14 +148,12 @@ export default function RecordsPage({ t, lang, subscriptionId, notificationsEnab
         }
         return { ...row, [key]: value };
       });
-      const row = updated.find((r) => r.id === rowId);
-      if (row) debouncedSave(rowId, row);
       return updated;
     });
   }, [columns]);
 
   const handleCustomFieldChange = useCallback((rowId, fieldIndex, key, value) => {
-    setSaveState('dirty');
+    markDirty(rowId);
     setRows((prev) => {
       const updated = prev.map((row) => {
         if (row.id !== rowId) return row;
@@ -159,81 +161,94 @@ export default function RecordsPage({ t, lang, subscriptionId, notificationsEnab
         customFields[fieldIndex] = { ...customFields[fieldIndex], [key]: value };
         return { ...row, customFields };
       });
-      const row = updated.find((r) => r.id === rowId);
-      if (row) debouncedSave(rowId, row);
       return updated;
     });
   }, []);
 
   const handleAddCustomField = useCallback((rowId) => {
-    setSaveState('dirty');
+    markDirty(rowId);
     setRows((prev) => {
       const updated = prev.map((row) => {
         if (row.id !== rowId) return row;
         const customFields = [...(row.customFields || []), { name: '', value: '' }];
         return { ...row, customFields };
       });
-      const row = updated.find((r) => r.id === rowId);
-      if (row) debouncedSave(rowId, row);
       return updated;
     });
   }, []);
 
   const handleDeleteCustomField = useCallback((rowId, fieldIndex) => {
-    setSaveState('dirty');
+    markDirty(rowId);
     setRows((prev) => {
       const updated = prev.map((row) => {
         if (row.id !== rowId) return row;
         const customFields = (row.customFields || []).filter((_, i) => i !== fieldIndex);
         return { ...row, customFields };
       });
-      const row = updated.find((r) => r.id === rowId);
-      if (row) debouncedSave(rowId, row);
       return updated;
     });
   }, []);
 
-  const handleDelete = async (id) => {
+  const handleDelete = (id) => {
     if (!window.confirm(t.deleteConfirm)) return;
-    try {
-      await deleteRecord(id);
-      setRows((prev) => prev.filter((row) => row.id !== id));
-    } catch {
-      setError(t.errorCreate);
-    }
+    if (!rows.find((row) => row.id === id)?._isNew) deletedIds.current.add(id);
+    dirtyIds.current.delete(id);
+    markDirty();
+    setRows((prev) => prev.filter((row) => row.id !== id));
   };
 
-  const handleClearAll = async () => {
+  const handleClearAll = () => {
     if (!window.confirm(t.clearConfirm)) return;
-    try {
-      await clearRecords();
-      setRows([]);
-    } catch {
-      setError(t.errorCreate);
-    }
+    rows.forEach((row) => { if (!row._isNew) deletedIds.current.add(row.id); });
+    dirtyIds.current.clear();
+    markDirty();
+    setRows([]);
   };
 
-  const handleColumnsChange = async (newColumns) => {
+  const handleColumnsChange = (newColumns) => {
+    columnsDirty.current = true;
+    markDirty();
     setColumns(newColumns);
-    try {
-      await saveRecordColumns(newColumns);
-    } catch {
-      setError(t.errorCreate);
-    }
   };
 
   const handleSaveAll = async () => {
-    Object.values(debounceTimers.current).forEach(clearTimeout);
-    debounceTimers.current = {};
+    if (saving.current || !pending.current) return;
+    saving.current = true;
     setSaveState('saving');
     try {
-      await Promise.all(rows.map((row) => updateRecord(row.id, rowToPayload(row))));
+      // Save sequentially so successful writes can be acknowledged even if a later request fails.
+      for (const row of rows) {
+        if (!dirtyIds.current.has(row.id)) continue;
+        const prepared = { ...row };
+        for (const [key, value] of Object.entries(prepared)) {
+          if (value && typeof value === 'object' && value._pendingMedia) {
+            const media = await createRecordMedia({ name: value.name, mimeType: value.mimeType, data: value.data });
+            prepared[key] = media;
+          }
+        }
+        const payload = rowToPayload(prepared);
+        const saved = row._isNew
+          ? await createRecord({ ...payload, subscriptionId: subscriptionId || null })
+          : await updateRecord(row.id, payload);
+        dirtyIds.current.delete(row.id);
+        setRows((current) => current.map((item) => item.id === row.id ? recordToRow(saved) : item));
+      }
+      for (const id of [...deletedIds.current]) {
+        await deleteRecord(id);
+        deletedIds.current.delete(id);
+      }
+      if (columnsDirty.current) {
+        await saveRecordColumns(columns);
+        columnsDirty.current = false;
+      }
+      pending.current = false;
       setError(null);
       setSaveState('saved');
-      setTimeout(() => setSaveState('idle'), 1800);
     } catch {
       setSaveState('dirty');
       setError(t.errorSave || t.errorCreate);
+    } finally {
+      saving.current = false;
     }
   };
 
@@ -314,6 +329,7 @@ export default function RecordsPage({ t, lang, subscriptionId, notificationsEnab
 
   return (
     <div className="page records-page">
+      <fieldset className="records-editor" disabled={saveState === 'saving'}>
       <header className="page-header">
         <h1>{t.recordsTitle}</h1>
         <div className="summary">
@@ -328,6 +344,7 @@ export default function RecordsPage({ t, lang, subscriptionId, notificationsEnab
         </div>
       </header>
 
+      {saveState === 'dirty' && <div className="banner" role="status">{lang === 'zh' ? '有未保存的更改。点击保存以保留。' : 'Unsaved changes. Click Save to keep them.'}</div>}
       {error && <div className="banner error">{error}</div>}
       {pushError && <div className="banner error">{pushError}</div>}
 
@@ -379,7 +396,7 @@ export default function RecordsPage({ t, lang, subscriptionId, notificationsEnab
           <button
             className={`btn btn-save ${saveState === 'saved' ? 'is-saved' : ''}`}
             onClick={handleSaveAll}
-            disabled={rows.length === 0 || saveState === 'saving'}
+            disabled={saveState !== 'dirty'}
           >
             {saveState === 'saving' ? t.saving : saveState === 'saved' ? t.saved : t.save}
           </button>
@@ -425,6 +442,7 @@ export default function RecordsPage({ t, lang, subscriptionId, notificationsEnab
           onClose={() => setShowManage(false)}
         />
       )}
+      </fieldset>
     </div>
   );
 }

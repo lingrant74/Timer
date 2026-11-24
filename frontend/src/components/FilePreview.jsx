@@ -7,7 +7,7 @@ export default function FilePreview({ file, lang, onClose }) {
   const [preview, setPreview] = useState(null);
   const [error, setError] = useState(false);
   const zh = lang === 'zh';
-  const url = recordMediaUrl(file.id);
+  const url = file._pendingMedia ? `data:${file.mimeType};base64,${file.data}` : recordMediaUrl(file.id);
 
   useEffect(() => {
     dialog.current.showModal();

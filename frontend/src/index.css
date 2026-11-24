@@ -1260,3 +1260,5 @@ body {
 
 .url-cell { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .url-open { display: inline-flex; align-items: center; min-height: 44px; padding: 4px 8px; color: var(--accent); font-size: 0.8rem; font-weight: 600; text-decoration: underline; }
+
+.records-editor { min-width: 0; margin: 0; padding: 0; border: 0; }

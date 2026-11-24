@@ -57,7 +57,7 @@ export default function App() {
       </div>
 
       <main className="main-content">
-        {tab === 'records' ? (
+        <div hidden={tab !== 'records'}>
           <RecordsPage
             t={t}
             lang={lang}
@@ -67,7 +67,8 @@ export default function App() {
             pushError={pushError}
             dueWarningSettings={dueWarningSettings}
           />
-        ) : tab === 'timers' ? (
+        </div>
+        {tab === 'records' ? null : tab === 'timers' ? (
           <TimersPage t={t} />
         ) : tab === 'images' ? (
           <ImagesPage t={t} />
