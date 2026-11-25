@@ -265,6 +265,7 @@ export default function CellInput({ type, value, onChange, lang, t, placeholder,
         const data = await readFile(file);
         const saved = { name: file.name, mimeType: file.type || 'application/octet-stream', data, _pendingMedia: true };
         onChange(saved);
+        setPreviewOpen(true);
       } catch {
         setMediaError(t.mediaUploadError);
       } finally {
@@ -292,7 +293,6 @@ export default function CellInput({ type, value, onChange, lang, t, placeholder,
                   <span className="file-icon" aria-hidden="true">↗</span>
                   <span>{t.openFile}</span>
                 </button>
-                {previewOpen && <FilePreview file={value} lang={lang} onClose={() => setPreviewOpen(false)} />}
                 <input
                   type="text"
                   className="file-name-input"
@@ -311,6 +311,7 @@ export default function CellInput({ type, value, onChange, lang, t, placeholder,
             <span>{mediaBusy ? t.mediaUploading : type === 'image' ? t.addImage : type === 'video' ? t.addVideo : t.addFile}</span>
           </label>
         )}
+        {previewOpen && (value?.id || value?._pendingMedia) && <FilePreview file={value} lang={lang} onClose={() => setPreviewOpen(false)} />}
         {mediaError && <small className="media-error">{mediaError}</small>}
       </div>
     );
