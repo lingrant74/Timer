@@ -1,6 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { recordMediaUrl } from '../api';
+
+const PdfPreview = lazy(() => import('./PdfPreview'));
 
 export default function FilePreview({ file, lang, onClose }) {
   const dialog = useRef(null);
@@ -64,7 +66,7 @@ export default function FilePreview({ file, lang, onClose }) {
           : preview.kind === 'image' ? <img src={preview.url} alt={file.name || ''} />
           : preview.kind === 'video' ? <video src={preview.url} controls />
           : preview.kind === 'audio' ? <audio src={preview.url} controls />
-          : preview.kind === 'pdf' ? <iframe src={`${preview.url}#view=FitH`} title={file.name || 'PDF'} />
+          : preview.kind === 'pdf' ? <Suspense fallback={<p role="status">{zh ? '加载 PDF…' : 'Loading PDF…'}</p>}><PdfPreview url={preview.url} zh={zh} /></Suspense>
           : <p>{zh ? '此文件格式暂不支持预览。请下载后在相应应用中打开。' : 'Preview is not available for this format. Download it to open in its app.'}</p>}
       </div>
     </dialog>, document.body,
