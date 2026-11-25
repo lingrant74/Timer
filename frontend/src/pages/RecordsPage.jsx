@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { getRecords, createRecord, updateRecord, deleteRecord, getRecordColumns, saveRecordColumns, linkRecordsSubscription, createRecordMedia } from '../api';
+import { compareRecordPriority, compareDueTime } from '../recordPriority';
 import DataTable from '../components/DataTable';
 import ManageColumnsModal from '../components/ManageColumnsModal';
 
@@ -36,7 +37,7 @@ export default function RecordsPage({ t, lang, subscriptionId, notificationsEnab
   const [rows, setRows] = useState([]);
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState(() => {
-    const saved = localStorage.getItem('recordsSort') || 'newest';
+    const saved = localStorage.getItem('recordsSortV2') || 'priority-time';
     const previousOptions = {
       'amount-high': 'column:amount:desc',
       'amount-low': 'column:amount:asc',
@@ -271,10 +272,11 @@ export default function RecordsPage({ t, lang, subscriptionId, notificationsEnab
   }
 
   const sortedRows = [...filteredRows].sort((a, b) => {
-    // Always group unpaid records first; apply the selected sort within each group.
-    const aPaid = a.paid === true || a.paid === 'true';
-    const bPaid = b.paid === true || b.paid === 'true';
-    if (aPaid !== bPaid) return aPaid ? 1 : -1;
+    const priority = compareRecordPriority(a, b, dueWarningSettings);
+    if (priority) return priority;
+    if (sortBy === 'priority-time') {
+      return compareDueTime(a, b) || compareOptional(a._createdAt, b._createdAt, -1);
+    }
 
     if (sortBy.startsWith('column:')) {
       const [, columnId, directionName] = sortBy.split(':');
@@ -305,14 +307,14 @@ export default function RecordsPage({ t, lang, subscriptionId, notificationsEnab
   function handleSortChange(event) {
     const next = event.target.value;
     setSortBy(next);
-    localStorage.setItem('recordsSort', next);
+    localStorage.setItem('recordsSortV2', next);
   }
 
   function handleColumnSort(columnId) {
     const prefix = `column:${columnId}:`;
     const next = sortBy === `${prefix}asc` ? `${prefix}desc` : `${prefix}asc`;
     setSortBy(next);
-    localStorage.setItem('recordsSort', next);
+    localStorage.setItem('recordsSortV2', next);
   }
 
   const hasAmountColumn = columns.some((col) => col.id === 'amount');
@@ -376,6 +378,7 @@ export default function RecordsPage({ t, lang, subscriptionId, notificationsEnab
         <label className="sort-wrapper">
           <span>{t.sortBy}</span>
           <select className="sort-select" value={sortBy} onChange={handleSortChange}>
+            <option value="priority-time">{lang === 'zh' ? '红色优先 · 到期时间从早到晚' : 'Red first · Earliest due time'}</option>
             <option value="newest">{t.sortNewest}</option>
             <option value="oldest">{t.sortOldest}</option>
             {columns.map((column) => {

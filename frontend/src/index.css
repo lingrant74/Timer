@@ -1245,18 +1245,19 @@ body {
 }
 
 .file-open-button { display: flex; align-items: center; gap: 0.4rem; padding: 0; border: 0; background: transparent; color: var(--accent); font: inherit; font-size: 0.75rem; font-weight: 700; cursor: pointer; text-align: left; }
-.attachment-dialog { width: min(960px, 96vw); max-width: 96vw; height: 90dvh; max-height: 90dvh; padding: 0; border: 1px solid var(--border); border-radius: 12px; color: var(--text); background: white; }
+.attachment-dialog { position: fixed; inset: 0; width: 100%; max-width: 100%; height: 100vh; height: 100dvh; max-height: 100dvh; margin: 0; padding: 0; border: 0; border-radius: 0; box-sizing: border-box; overflow: hidden; color: var(--text); background: white; }
 .attachment-dialog::backdrop { background: rgba(15, 23, 42, 0.65); }
 .attachment-dialog[open] { display: flex; flex-direction: column; }
-.attachment-toolbar { display: flex; align-items: center; gap: 12px; padding: 12px; border-bottom: 1px solid var(--border); }
-.attachment-toolbar strong { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.attachment-toolbar { display: flex; flex-shrink: 0; align-items: center; gap: 12px; padding: max(8px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) 8px max(12px, env(safe-area-inset-left)); border-bottom: 1px solid var(--border); }
+.attachment-toolbar strong { flex: 1; min-width: 0; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
 .attachment-toolbar a { color: var(--accent); }
 .attachment-toolbar button { flex-shrink: 0; width: 44px; height: 44px; border: 1px solid var(--border); border-radius: 8px; background: white; font-size: 24px; cursor: pointer; }
-.attachment-content { flex: 1; min-height: 0; overflow: auto; padding: 12px; }
-.attachment-content iframe { width: 100%; height: 100%; border: 0; }
-.attachment-content img, .attachment-content video { display: block; max-width: 100%; max-height: 100%; margin: auto; object-fit: contain; }
+.attachment-content { flex: 1; min-height: 0; min-width: 0; overflow: auto; padding: 0; overscroll-behavior: contain; }
+.attachment-content iframe { display: block; width: 100%; height: 100%; border: 0; }
+.attachment-content img, .attachment-content video { display: block; width: 100%; height: 100%; margin: 0; object-fit: contain; }
 .attachment-content audio { width: 100%; }
-.attachment-content pre { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; }
+.attachment-content pre { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; padding: 16px; line-height: 1.5; }
+.attachment-content > p { padding: 16px; }
 
 .url-cell { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .url-open { display: inline-flex; align-items: center; min-height: 44px; padding: 4px 8px; color: var(--accent); font-size: 0.8rem; font-weight: 600; text-decoration: underline; }

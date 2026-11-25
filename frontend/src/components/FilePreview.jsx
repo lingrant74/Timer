@@ -10,6 +10,12 @@ export default function FilePreview({ file, lang, onClose }) {
   const url = file._pendingMedia ? `data:${file.mimeType};base64,${file.data}` : recordMediaUrl(file.id);
 
   useEffect(() => {
+    const previousOverflow = document.documentElement.style.overflow;
+    document.documentElement.style.overflow = 'hidden';
+    return () => { document.documentElement.style.overflow = previousOverflow; };
+  }, []);
+
+  useEffect(() => {
     dialog.current.showModal();
     const controller = new AbortController();
     let objectUrl;
@@ -58,7 +64,7 @@ export default function FilePreview({ file, lang, onClose }) {
           : preview.kind === 'image' ? <img src={preview.url} alt={file.name || ''} />
           : preview.kind === 'video' ? <video src={preview.url} controls />
           : preview.kind === 'audio' ? <audio src={preview.url} controls />
-          : preview.kind === 'pdf' ? <iframe src={preview.url} title={file.name || 'PDF'} />
+          : preview.kind === 'pdf' ? <iframe src={`${preview.url}#view=FitH`} title={file.name || 'PDF'} />
           : <p>{zh ? '此文件格式暂不支持预览。请下载后在相应应用中打开。' : 'Preview is not available for this format. Download it to open in its app.'}</p>}
       </div>
     </dialog>, document.body,
