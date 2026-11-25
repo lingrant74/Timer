@@ -53,7 +53,7 @@ function PdfPage({ document, number, zh }) {
   return <section className="pdf-page" ref={container} aria-label={zh ? `第 ${number} 页` : `Page ${number}`}>
     <div className="pdf-page-number">{zh ? `第 ${number} 页` : `Page ${number}`}</div>
     <div style={{ aspectRatio: `1 / ${ratio}` }}>
-      {error ? <p role="alert">{zh ? '此页无法显示，请下载查看。' : 'Could not display this page. Download to view it.'}</p> : <canvas ref={canvas} role="img" aria-label={zh ? `第 ${number} 页内容` : `Page ${number} content`} />}
+      {error ? <p role="alert">{zh ? '此页无法显示，请在设备上打开原始文件。' : 'Could not display this page. Open the original file on your device.'}</p> : <canvas ref={canvas} role="img" aria-label={zh ? `第 ${number} 页内容` : `Page ${number} content`} />}
     </div>
   </section>;
 }
@@ -70,7 +70,7 @@ export default function PdfPreview({ url, zh }) {
     return () => { cancelled = true; task.destroy(); };
   }, [url]);
 
-  if (error) return <p role="alert">{zh ? '无法打开此 PDF（可能已加密）。请下载查看。' : 'Could not open this PDF. It may be password protected. Download it to view.'}</p>;
+  if (error) return <p role="alert">{zh ? '无法打开此 PDF（可能已加密）。请在设备上打开原始文件。' : 'Could not open this PDF. It may be password protected. Open the original file on your device.'}</p>;
   if (!document) return <p role="status">{zh ? '加载 PDF…' : 'Loading PDF…'}</p>;
   return <div className="pdf-pages">
     <div className="pdf-page-count" role="status">{zh ? `共 ${document.numPages} 页 · 向下滚动查看` : `${document.numPages} pages · Scroll to view all pages`}</div>

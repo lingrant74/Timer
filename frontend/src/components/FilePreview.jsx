@@ -56,7 +56,6 @@ export default function FilePreview({ file, lang, onClose }) {
     <dialog ref={dialog} className="attachment-dialog" onCancel={onClose} onClose={onClose}>
       <div className="attachment-toolbar">
         <strong>{file.name || (zh ? '文件' : 'File')}</strong>
-        <a href={url} target="_blank" rel="noreferrer" download={file.name || true}>{zh ? '下载' : 'Download'}</a>
         <button type="button" onClick={onClose} aria-label={zh ? '关闭预览' : 'Close preview'}>×</button>
       </div>
       <div className="attachment-content">
@@ -67,7 +66,7 @@ export default function FilePreview({ file, lang, onClose }) {
           : preview.kind === 'video' ? <video src={preview.url} controls />
           : preview.kind === 'audio' ? <audio src={preview.url} controls />
           : preview.kind === 'pdf' ? <Suspense fallback={<p role="status">{zh ? '加载 PDF…' : 'Loading PDF…'}</p>}><PdfPreview url={preview.url} zh={zh} /></Suspense>
-          : <p>{zh ? '此文件格式暂不支持预览。请下载后在相应应用中打开。' : 'Preview is not available for this format. Download it to open in its app.'}</p>}
+          : <p>{zh ? '此文件格式暂不支持预览。请在设备上使用相应应用打开原始文件。' : 'Preview is not available for this format. Open the original file in its app on your device.'}</p>}
       </div>
     </dialog>, document.body,
   );
