@@ -6,6 +6,8 @@ import ManageColumnsModal from '../components/ManageColumnsModal';
 
 const POLL_INTERVAL = 300000; // 5 minutes
 
+const URL_COLUMN = { id: 'websiteUrl', name: { en: 'URL / Link', zh: '网址 / 链接' }, type: 'url' };
+
 const DEFAULT_COLUMNS = [
   { id: 'paid', name: { en: 'Paid', zh: '已付款' }, type: 'checkbox' },
   { id: 'address', name: { en: 'Address', zh: '地址' }, type: 'text' },
@@ -30,6 +32,7 @@ const DEFAULT_COLUMNS = [
   { id: 'amount', name: { en: 'Amount', zh: '金额' }, type: 'number' },
   { id: 'dueDate', name: { en: 'Due Date', zh: '到期日' }, type: 'date' },
   { id: 'reminder', name: { en: 'Reminder', zh: '提醒' }, type: 'reminder' },
+  URL_COLUMN,
 ];
 
 export default function RecordsPage({ t, lang, subscriptionId, notificationsEnabled, enableNotifications, pushError, dueWarningSettings }) {
@@ -80,7 +83,16 @@ export default function RecordsPage({ t, lang, subscriptionId, notificationsEnab
     try {
       const [cols, records] = await Promise.all([getRecordColumns(), getRecords()]);
       if (pending.current || saving.current || version.current !== loadedVersion) return;
-      if (cols.length > 0) setColumns(cols);
+      const loadedColumns = cols.length ? cols : DEFAULT_COLUMNS;
+      if (loadedColumns.some((column) => column.type === 'url')) {
+        setColumns(loadedColumns);
+      } else {
+        // Add a shared URL field without replacing any existing column or record value.
+        let id = URL_COLUMN.id;
+        while (loadedColumns.some((column) => column.id === id)) id += '_link';
+        setColumns([...loadedColumns, { ...URL_COLUMN, id }]);
+        columnsDirty.current = true;
+      }
       setRows(records.map(recordToRow));
       setError(null);
     } catch {
